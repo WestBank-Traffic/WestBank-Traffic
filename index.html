@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خريطة GeoJSON</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 100%;
+    }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      width: calc(100% - 20px); /* العرض يقلل من الحواف */
+      margin: 0 10px; /* حواف صغيرة على اليمين واليسار */
+      align-items: center; /* محاذاة العناصر عموديًا في الوسط */
+    }
+    .leaflet-control-title {
+      font-size: 24px; /* تكبير حجم الخط */
+      font-weight: bold;
+      text-align: center;
+      flex: 2; /* السماح للعنوان بأخذ مساحة أكبر */
+    }
+    #question-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      flex: 1; /* السماح لصندوق الأسئلة بأخذ مساحة أقل */
+    }
+    #question-form {
+      display: flex;
+      align-items: center;
+      gap: 10px; /* فراغ بين العناصر */
+    }
+    #question-box h2 {
+      margin: 0 0 10px 0; /* تعديل الهامش لتقليل المسافة بين النصوص */
+    }
+    #question-box label, #question-box select, #question-box button {
+      margin-bottom: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <div id='map'></div>
+
+  <div id="control-box">
+    <div id="question-box">
+      <h2>اسئلة حول موقف السيارات</h2>
+      <form id="question-form">
+        <label for="destination">وجهة التوصيل:</label>
+        <select id="destination" name="destination"></select>
+        <button type="submit">اظهار الموقف</button>
+        <button id="route-button" type="button">تحديد المسار</button>
+      </form>
+    </div>
+    <div class="leaflet-control-title">مواقع مواقف سيارات الأجرة في مدينة رام الله</div>
+  </div>
+
+  <script src='https://unpkg.com/leaflet@1.7.1/dist/leaflet.js'></script>
+  <script src='https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js'></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script>
+    var map = L.map('map').setView([31.898043, 35.204269], 15); // إحداثيات منطقة الدراسة في رام الله ومستوى الزوم
+
+    // إضافة خريطة الأساس
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    var markers = L.markerClusterGroup();
+
+    var busData; // متغير لتخزين بيانات bus.geojson
+
+    // تحميل وإضافة الطبقة لمواقع الحافلات
+    fetch('https://Rahaf-Yaze.github.io/bus.geojson')
+      .then(response => response.json())
+      .then(data => {
+        busData = data; // حفظ البيانات للاستخدام لاحقاً
+
+        var destinationSelect = document.getElementById("destination");
+        var destinations = new Set();
+
+        L.geoJSON(data, {
+          onEachFeature: function(feature, layer) {
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+            popupContent += "<tr><th>الموقع</th><td>" + feature.properties.Location + "</td></tr>";
+            popupContent += "<tr><th>وجهة التوصيل</th><td>" + feature.properties.to_Where_1 + "</td></tr>";
+            popupContent += "<tr><th>اجرة التوصيل</th><td>" + feature.properties.Fees + "</td></tr>";
+            popupContent += "<tr><th>الوقت</th><td>" + feature.properties.Time + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + feature.properties.Name + "</td></tr>";
+            popupContent += "</table>";
+            layer.bindPopup(popupContent);
+
+            destinations.add(feature.properties.to_Where_1);
+          }
+        }).addTo(markers);
+        markers.addTo(map);
+
+        // إضافة الخيارات إلى القائمة المنسدلة
+        destinations.forEach(function(destination) {
+          var option = document.createElement("option");
+          option.value = destination;
+          option.text = destination;
+          destinationSelect.add(option);
+        });
+      });
+
+    // تحميل وإضافة الطبقة للنقاط
+    fetch('https://Rahaf-Yaze.github.io/bus.geojson')
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);
+          }
+        }).addTo(map);
+      });
+
+    // تحميل وإضافة الطبقة للطرق
+    fetch('https://Rahaf-Yaze.github.io/roads.geojson')
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: function (feature) {
+            return {
+              color: "gray",
+              weight: 2,
+              opacity: 0.65
+            };
+          }
+        }).addTo(map);
+      });
+
+    // تحميل وإضافة الطبقة لمواقع السمسيات
+    fetch('https://Rahaf-Yaze.github.io/Ramallah.geojson')
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: function (feature) {
+            return {
+              color: "purple",
+              weight: 3,
+              opacity: 0.65,
+              fillOpacity: 0
+            };
+          }
+        }).addTo(map);
+      });
+
+    var currentLocation;
+
+    // الحصول على الموقع الحالي
+    function getCurrentLocation(callback) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          currentLocation = [position.coords.latitude, position.coords.longitude];
+          callback(currentLocation);
+        }, function(error) {
+          alert("لم نتمكن من تحديد موقعك الحالي.");
+        });
+      } else {
+        alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+      }
+    }
+
+    // إضافة استجابة لتقديم الأسئلة
+    document.getElementById("question-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      var destination = document.getElementById("destination").value.trim().toLowerCase();
+      if (busData) {
+        var found = false;
+        markers.clearLayers(); // مسح العلامات الحالية
+        var matchingLayer;
+        L.geoJSON(busData, {
+          filter: function(feature) {
+            return feature.properties.to_Where_1.trim().toLowerCase() === destination;
+          },
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);
+          },
+          onEachFeature: function(feature, layer) {
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+            popupContent += "<tr><th>الموقع</th><td>" + feature.properties.Location + "</td></tr>";
+            popupContent += "<tr><th>وجهة التوصيل</th><td>" + feature.properties.to_Where_1 + "</td></tr>";
+            popupContent += "<tr><th>اجرة التوصيل</th><td>" + feature.properties.Fees + "</td></tr>";
+           
+            popupContent += "<tr><th>الوقت</th><td>" + feature.properties.Time + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + feature.properties.Name + "</td></tr>";
+            popupContent += "</table>";
+            layer.bindPopup(popupContent);
+            markers.addLayer(layer);
+            map.setView(layer.getLatLng(), 16); // تكبير الخريطة إلى النقطة
+            layer.openPopup(); // فتح النافذة المنبثقة عند العثور على العلامة
+            matchingLayer = layer;
+            found = true;
+          }
+        }).addTo(map);
+        if (!found) {
+          alert("لم يتم العثور على وجهة التوصيل المحددة.");
+        } else {
+          markers.addTo(map);
+          if (matchingLayer) {
+            matchingLayer.openPopup();
+          }
+        }
+      }
+    });
+
+    // إضافة استجابة لزر تحديد المسار
+    document.getElementById("route-button").addEventListener("click", function() {
+      var destination = document.getElementById("destination").value.trim().toLowerCase();
+      if (busData) {
+        var found = false;
+        var destinationLatLng;
+        L.geoJSON(busData, {
+          filter: function(feature) {
+            return feature.properties.to_Where_1.trim().toLowerCase() === destination;
+          },
+          onEachFeature: function(feature, layer) {
+            destinationLatLng = layer.getLatLng();
+            found = true;
+          }
+        });
+        if (!found) {
+          alert("لم يتم العثور على وجهة التوصيل المحددة.");
+        } else {
+          getCurrentLocation(function(currentLocation) {
+            L.Routing.control({
+              waypoints: [
+                L.latLng(currentLocation[0], currentLocation[1]),
+                L.latLng(destinationLatLng.lat, destinationLatLng.lng)
+              ],
+              routeWhileDragging: true
+            }).addTo(map);
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>
