@@ -101,8 +101,9 @@
 
     var markers = L.markerClusterGroup();
     var busData; // لتخزين بيانات bus.geojson
+    var exBusData; // لتخزين بيانات EX_Bus.json
 
-    // تحميل بيانات الحافلات
+    // تحميل بيانات الحافلات (Bus.geojson)
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
       .then(response => response.json())
       .then(data => {
@@ -115,7 +116,7 @@
             return L.marker(latlng);
           },
           onEachFeature: function(feature, layer) {
-            // إعداد محتوى الـ popup لعرض جميع الحقول المطلوبة
+            // إعداد محتوى الـ popup لعرض جميع الحقول المطلوبة من EX_Bus.json
             var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
             popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
             popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
@@ -140,57 +141,41 @@
           option.value = destination;
           option.text = destination;
           destinationSelect.add(option);
-        });
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
-    // دالة لتحديد المسار بين الموقع الحالي والموقع المحدد
-    document.getElementById("route-button").addEventListener("click", function() {
-      var destination = document.getElementById("destination").value.trim().toLowerCase();
-      if (busData) {
-        var found = false;
-        var destinationLatLng;
+    // تحميل بيانات EX_Bus.json (ربطها مع Bus.geojson)
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')  // رابط EX_Bus.json
+      .then(response => response.json())
+      .then(data => {
+        exBusData = data;
+
+        // ربط بيانات EX_Bus مع Bus.geojson
         L.geoJSON(busData, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng);
           },
-          filter: function(feature) {
-            return feature.properties.to_Where_1.trim().toLowerCase() === destination;
-          },
           onEachFeature: function(feature, layer) {
-            destinationLatLng = layer.getLatLng();
-            found = true;
-          }
-        });
-        if (!found || !destinationLatLng) {
-          alert("لم يتم العثور على وجهة التوصيل المحددة.");
-        } else {
-          getCurrentLocation(function(currentLocation) {
-            L.Routing.control({
-              waypoints: [
-                L.latLng(currentLocation[0], currentLocation[1]),
-                L.latLng(destinationLatLng.lat, destinationLatLng.lng)
-              ],
-              routeWhileDragging: true
-            }).addTo(map);
-          });
-        }
-      }
-    });
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
 
-    // دالة للحصول على الموقع الحالي للمستخدم
-    function getCurrentLocation(callback) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          var currentLocation = [position.coords.latitude, position.coords.longitude];
-          callback(currentLocation);
-        }, function(error) {
-          alert("لم نتمكن من تحديد موقعك الحالي.");
-        });
-      } else {
-        alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
-      }
-    }
+            // ربط الاسم من Bus.geojson مع EX_Bus.json
+            const matchingExBus = exBusData.find(item => item.Name === feature.properties.Name);
+            
+            if (matchingExBus) {
+              popupContent += "<tr><th>الموقع</th><td>" + matchingExBus.Location + "</td></tr>";
+              popupContent += "<tr><th>وجهة التوصيل</th><td>" + matchingExBus.to_Where_1 + "</td></tr>";
+              popupContent += "<tr><th>أجرة التوصيل</th><td>" + matchingExBus.Fees + "</td></tr>";
+              popupContent += "<tr><th>الوقت</th><td>" + matchingExBus.Time + "</td></tr>";
+            } else {
+              popupContent += "<tr><td colspan='2'>لا توجد بيانات إضافية</td></tr>";
+            }
+
+            popupContent += "</table>";
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(map);
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات EX_Bus:', error));
   </script>
 </body>
 </html>
