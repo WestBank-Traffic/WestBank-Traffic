@@ -26,7 +26,14 @@
             .then(response => response.json())
             .then(busGeojsonData => {
                 // إضافة طبقة GeoJSON للمسارات (bus routes)
-                L.geoJSON(busGeojsonData).addTo(map);
+                L.geoJSON(busGeojsonData, {
+                    onEachFeature: function(feature, layer) {
+                        // عرض معلومات المحطة إذا كان هناك خصائص في GeoJSON
+                        if (feature.properties) {
+                            layer.bindPopup(`<b>${feature.properties.name}</b><br>Line: ${feature.properties.line}`);
+                        }
+                    }
+                }).addTo(map);
 
                 // بعد تحميل بيانات الخطوط، نقوم بتحميل بيانات الكراجات
                 fetch('path/to/your/البحث.json')  // استبدل بـ الرابط الفعلي لملف البحث
@@ -58,4 +65,5 @@
     </script>
 </body>
 </html>
+
 
