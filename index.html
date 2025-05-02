@@ -115,13 +115,16 @@
             return L.marker(latlng);
           },
           onEachFeature: function(feature, layer) {
+            // إعداد محتوى الـ popup لعرض جميع الحقول المطلوبة
             var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
-            popupContent += "<tr><th>الموقع</th><td>" + feature.properties.Location + "</td></tr>";
-            popupContent += "<tr><th>وجهة التوصيل</th><td>" + feature.properties.to_Where_1 + "</td></tr>";
-            popupContent += "<tr><th>أجرة التوصيل</th><td>" + feature.properties.Fees + "</td></tr>";
-            popupContent += "<tr><th>الوقت</th><td>" + feature.properties.Time + "</td></tr>";
-            popupContent += "<tr><th>اسم المجمع</th><td>" + feature.properties.Name + "</td></tr>";
+            popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>أجرة التوصيل</th><td>" + (feature.properties.Fees || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>الوقت</th><td>" + (feature.properties.Time || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + (feature.properties.Name || 'غير محدد') + "</td></tr>";
             popupContent += "</table>";
+
+            // ربط الـ popup بالمحتوى
             layer.bindPopup(popupContent);
 
             // جمع الوجهات للقائمة المنسدلة
