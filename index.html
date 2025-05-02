@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Stations, Bus Routes, and Search Data in Ramallah</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Car Stations, Bus Routes, and Search Data in Ramallah</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // إنشاء الخريطة
+        var map = L.map('map').setView([31.9, 35.2], 12);  // التحديد على مدينة رام الله
+
+        // إضافة طبقة الخريطة
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // إضافة طبقة GeoJSON للمحطات (Bus.geojson)
+        fetch('path/to/your/Bus.geojson')  // استبدل بـ رابط أو مسار ملف GeoJSON
+            .then(response => response.json())
+            .then(busGeojsonData => {
+                // إضافة طبقة GeoJSON للمسارات (bus routes)
+                L.geoJSON(busGeojsonData, {
+                    onEachFeature: function(feature, layer) {
+                        // إضافة علامة في كل نقطة إذا كانت إحداثيات Point
+                        if (feature.geometry && feature.geometry.type === "Point") {
+                            var lat = feature.geometry.coordinates[1];
+                            var lon = feature.geometry.coordinates[0];
+                            L.marker([lat, lon]).addTo(map);
+                        }
+                        
+                        // عرض معلومات المحطة إذا كان هناك خصائص في GeoJSON
+                        if (feature.properties) {
+                            layer.bindPopup(`<b>${feature.properties.name}</b><br>Line: ${feature.properties.line}`);
+                        }
+                    }
+                }).addTo(map);
+
+                // بعد تحميل بيانات الخطوط، نقوم بتحميل بيانات الكراجات
+                fetch('path/to/your/البحث.json')  // استبدل بـ الرابط الفعلي لملف البحث
+                    .then(response => response.json())
+                    .then(searchData => {
+                        // ربط الكراجات بالخطوط باستخدام اسم المجمع
+                        busGeojsonData.features.forEach(busFeature => {
+                            // البحث عن المجمع الذي يطابق اسم المجمع من البيانات
+                            const matchingSearchData = searchData.find(item => item.name === busFeature.properties.name);
+
+                            if (matchingSearchData) {
+                                // إضافة معلومات الكراجات إلى الخطوط
+                                const popupContent = `
+                                    <b>${busFeature.properties.name}</b><br>
+                                    Line: ${matchingSearchData.line}<br>
+                                    Address: ${matchingSearchData.address}
+                                `;
+
+                                // إضافة العلامة على الخريطة مع البيانات المرتبطة
+                                L.geoJSON(busFeature)
+                                    .bindPopup(popupContent)
+                                    .addTo(map);
+                            }
+                        });
+                    })
+                    .catch(error => console.error('Error loading the search data:', error));
+            })
+            .catch(error => console.error('Error loading the Bus GeoJSON data:', error));
+    </script>
+</body>
+</html>
+
