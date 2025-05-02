@@ -1,31 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Stations, Bus Routes, and Search Data in Ramallah</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map { height: 500px; width: 100%; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خريطة مواقف السيارات والخطوط</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 100%;
+    }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      width: calc(100% - 20px);
+      margin: 0 10px;
+      align-items: center;
+    }
+    .leaflet-control-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      flex: 2;
+    }
+    #question-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      flex: 1;
+    }
+    #question-form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #question-box h2 {
+      margin: 0 0 10px 0;
+    }
+    #question-box label, #question-box select, #question-box button {
+      margin-bottom: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
 <body>
-    <h1>Car Stations, Bus Routes, and Search Data in Ramallah</h1>
-    <div id="map"></div>
+  <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        // إنشاء الخريطة
-        var map = L.map('map').setView([31.9, 35.2], 12);  // التحديد على مدينة رام الله
+  <div id="control-box">
+    <div id="question-box">
+      <h2>أسئلة حول مواقف السيارات</h2>
+      <form id="question-form">
+        <label for="destination">وجهة التوصيل:</label>
+        <select id="destination" name="destination"></select>
+        <button type="submit">إظهار الموقف</button>
+        <button id="route-button" type="button">تحديد المسار</button>
+      </form>
+    </div>
+    <div class="leaflet-control-title">مواقع مواقف السيارات في مدينة رام الله</div>
+  </div>
 
-        // إضافة طبقة الخريطة
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script>
+    // إعداد الخريطة
+    var map = L.map('map').setView([31.898043, 35.204269], 15);  // رام الله
 
-        // إضافة طبقة GeoJSON للمحطات (Bus.geojson)
-        fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // الرابط المباشر للـ GeoJSON
-            .then(response => response.json())
-            .then(busGeojsonData => {
-                // تحقق من بيانات GeoJSON عن طريق طباعتها في console
-                console.log(busGeojsonData);
+    // إضافة طبقة الأساس
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
 
-                // إضافة طبقة GeoJSON للمسارات
+    var markers = L.markerClusterGroup();
+    var busData; // لتخزين بيانات bus.geojson
+
+    // تحميل بيانات الحافلات
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
+      .then(response => response.json())
+      .then(data => {
+        busData = data;
+        var destinationSelect = document.getElementById("destination");
+        var destinations = new Set();
+
+        L.geoJSON(data, {
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);
+          },
+          onEachFeature: function(feature, layer) {
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+            popupContent += "<tr><th>الموقع</th><td>" + feature.properties.Location + "</td></tr>";
+            popupContent += "<tr><th>وجهة التوصيل</th><td>" + feature.properties.to_Where_1 + "</td></tr>";
+            popupContent += "<tr><th>أجرة التوصيل</th><td>" + feature.properties.Fees + "</td></tr>";
+            popupContent += "<tr><th>الوقت</th><td>" + feature.properties.Time + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + feature.properties.Name + "</td></tr>";
+            popupContent += "</table>";
+            layer.bindPopup(popupContent);
+
+            // جمع الوجهات للقائمة المنسدلة
+            destinations.add(feature.properties.to_Where_1);
+            markers.addLayer(layer);
+          }
+        });
+        map.addLayer(markers);
+
+        // تعبئة قائمة الوجهات
+        destinations.forEach(function(destination) {
+          var option = document.createElement("option");
+          option.value = destination;
+          option.text = destination;
+          destinationSelect.add(option);
+        });
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
+
+    // دالة لتحديد المسار بين الموقع الحالي والموقع المحدد
+    document.getElementById("route-button").addEventListener("click", function() {
+      var destination = document.getElementById("destination").value.trim().toLowerCase();
+      if (busData) {
+        var found = false;
+        var destinationLatLng;
+        L.geoJSON(busData, {
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);
+          },
+          filter: function(feature) {
+            return feature.properties.to_Where_1.trim().toLowerCase() === destination;
+          },
+          onEachFeature: function(feature, layer) {
+            destinationLatLng = layer.getLatLng();
+            found = true;
+          }
+        });
+        if (!found || !destinationLatLng) {
+          alert("لم يتم العثور على وجهة التوصيل المحددة.");
+        } else {
+          getCurrentLocation(function(currentLocation) {
+            L.Routing.control({
+              waypoints: [
+                L.latLng(currentLocation[0], currentLocation[1]),
+                L.latLng(destinationLatLng.lat, destinationLatLng.lng)
+              ],
+              routeWhileDragging: true
+            }).addTo(map);
+          });
+        }
+      }
+    });
+
+    // دالة للحصول على الموقع الحالي للمستخدم
+    function getCurrentLocation(callback) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          var currentLocation = [position.coords.latitude, position.coords.longitude];
+          callback(currentLocation);
+        }, function(error) {
+          alert("لم نتمكن من تحديد موقعك الحالي.");
+        });
+      } else {
+        alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+      }
+    }
+  </script>
+</body>
+</html>
