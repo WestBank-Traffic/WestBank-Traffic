@@ -110,12 +110,11 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
-        // تعريف الأيقونة الخاصة بمحطات المواصلات
-        var busIcon = L.icon({
-          iconUrl: 'https://example.com/your-icon.png', // ضع هنا رابط الأيقونة الخاصة بك
-          iconSize: [25, 25],  // حجم الأيقونة
-          iconAnchor: [12, 24],  // نقطة الارتكاز
-          popupAnchor: [0, -24]  // موقع البوب أب
+        // تعريف أيقونة ثابتة لمحطة المواصلات
+        var busIcon = L.divIcon({
+          className: 'leaflet-div-icon',
+          iconSize: [30, 30],
+          html: '<i style="font-size: 24px; color: #3388ff;" class="fa fa-bus"></i>'  // يمكن تغيير الأيقونة حسب الرغبة
         });
 
         L.geoJSON(data, {
