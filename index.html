@@ -110,12 +110,12 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
-        // تعريف أيقونة ثابتة لمحطة المواصلات باستخدام صورة
+        // تحميل رمز المحطة من SVG
         var busIcon = L.icon({
-          iconUrl: 'https://example.com/your-icon.png',  // ضع هنا رابط الأيقونة الخاصة بك
-          iconSize: [30, 30],  // حجم الأيقونة
-          iconAnchor: [15, 30],  // نقطة الارتكاز
-          popupAnchor: [0, -30]  // موقع البوب أب
+          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+          iconSize: [30, 30],  // تحديد الحجم المناسب للأيقونة
+          iconAnchor: [15, 30],  // تعيين نقطة الارتكاز
+          popupAnchor: [0, -30]  // تعيين مكان البوب أب
         });
 
         L.geoJSON(data, {
