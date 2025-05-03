@@ -89,8 +89,8 @@
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
-    // إعداد الخريطة
-    var map = L.map('map').setView([31.898043, 35.204269], 15);  // رام الله
+    // إعداد الخريطة مع زوم مباشرة على الضفة الغربية
+    var map = L.map('map').setView([31.9496, 35.2272], 15);  // إحداثيات الضفة الغربية
 
     // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -110,9 +110,6 @@
         busData = data;
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
-
-        // تحقق من تحميل البيانات
-        console.log("Bus.geojson Data:", busData);
 
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
@@ -136,9 +133,6 @@
           }
         });
         map.addLayer(markers);
-
-        // تحقق من الوجهات التي تم جمعها
-        console.log("Destinations:", Array.from(destinations));
 
         // تعبئة قائمة الوجهات
         destinations.forEach(function(destination) {
