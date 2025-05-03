@@ -110,12 +110,12 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
-        // تحميل رمز المحطة من SVG
+        // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-          iconSize: [35, 35],  // زيادة حجم الأيقونة
-          iconAnchor: [17, 34],  // تعيين نقطة الارتكاز بشكل مناسب
-          popupAnchor: [0, -35]  // تعيين مكان البوب أب
+          iconSize: [30, 30],  // حجم مناسب
+          iconAnchor: [15, 30],  // نقطة الارتكاز
+          popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
 
         L.geoJSON(data, {
