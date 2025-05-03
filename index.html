@@ -111,12 +111,13 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
+        // تعبئة قائمة الوجهات في القائمة المنسدلة
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng);
           },
           onEachFeature: function(feature, layer) {
-            // إعداد محتوى الـ popup لعرض جميع الحقول المطلوبة من EX_Bus.json
+            // عرض البيانات في الـ popup
             var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
             popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
             popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
@@ -125,7 +126,6 @@
             popupContent += "<tr><th>اسم المجمع</th><td>" + (feature.properties.Name || 'غير محدد') + "</td></tr>";
             popupContent += "</table>";
 
-            // ربط الـ popup بالمحتوى
             layer.bindPopup(popupContent);
 
             // جمع الوجهات للقائمة المنسدلة
@@ -141,6 +141,10 @@
           option.value = destination;
           option.text = destination;
           destinationSelect.add(option);
+        });
+
+        // طباعة الوجهات في الـ console للتأكد من أنها تم تحميلها بشكل صحيح
+        console.log("Destinations Loaded:", Array.from(destinations));
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
