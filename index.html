@@ -110,12 +110,12 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
-        // تحميل الأيقونة من ملف SVG الذي يحتوي على اللون البرتقالي
+        // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',  // رابط الأيقونة
-          iconSize: [30, 30],  // تحديد حجم مناسب
-          iconAnchor: [15, 30],  // تحديد نقطة الارتكاز
-          popupAnchor: [0, -30]  // تحديد مكان ظهور البوب أب
+          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+          iconSize: [30, 30],  // حجم مناسب
+          iconAnchor: [15, 30],  // نقطة الارتكاز
+          popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
 
         L.geoJSON(data, {
