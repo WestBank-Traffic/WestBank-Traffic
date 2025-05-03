@@ -111,7 +111,9 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
-        // تعبئة قائمة الوجهات في القائمة المنسدلة
+        // تحقق من تحميل البيانات
+        console.log("Bus.geojson Data:", busData);
+
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng);
@@ -135,6 +137,9 @@
         });
         map.addLayer(markers);
 
+        // تحقق من الوجهات التي تم جمعها
+        console.log("Destinations:", Array.from(destinations));
+
         // تعبئة قائمة الوجهات
         destinations.forEach(function(destination) {
           var option = document.createElement("option");
@@ -142,9 +147,6 @@
           option.text = destination;
           destinationSelect.add(option);
         });
-
-        // طباعة الوجهات في الـ console للتأكد من أنها تم تحميلها بشكل صحيح
-        console.log("Destinations Loaded:", Array.from(destinations));
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
