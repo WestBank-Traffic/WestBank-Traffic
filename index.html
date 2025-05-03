@@ -101,7 +101,6 @@
 
     var markers = L.markerClusterGroup();
     var busData; // لتخزين بيانات bus.geojson
-    var exBusData; // لتخزين بيانات EX_Bus.json
 
     // تحميل بيانات الحافلات (Bus.geojson)
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
@@ -111,9 +110,17 @@
         var destinationSelect = document.getElementById("destination");
         var destinations = new Set();
 
+        // تعريف الأيقونة الخاصة بمحطات المواصلات
+        var busIcon = L.icon({
+          iconUrl: 'https://example.com/your-icon.png', // ضع هنا رابط الأيقونة الخاصة بك
+          iconSize: [25, 25],  // حجم الأيقونة
+          iconAnchor: [12, 24],  // نقطة الارتكاز
+          popupAnchor: [0, -24]  // موقع البوب أب
+        });
+
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng);
+            return L.marker(latlng, { icon: busIcon });
           },
           onEachFeature: function(feature, layer) {
             // عرض البيانات في الـ popup
@@ -153,7 +160,7 @@
         // ربط بيانات EX_Bus مع Bus.geojson
         L.geoJSON(busData, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng);
+            return L.marker(latlng, { icon: busIcon });
           },
           onEachFeature: function(feature, layer) {
             var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
