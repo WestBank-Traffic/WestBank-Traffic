@@ -90,7 +90,7 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     // إعداد الخريطة مع الزوم على الضفة الغربية
-    var map = L.map('map').setView([32.0, 35.5], 13);  // إحداثيات للضفة الغربية
+    var map = L.map('map').setView([32.0, 35.5], 9);  // إحداثيات للضفة الغربية مع مستوى تكبير مناسب
 
     // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -145,4 +145,37 @@
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
     // تحميل بيانات EX_Bus.json (ربطها مع Bus.geojson)
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')  // رابط_
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')  // رابط EX_Bus.json
+      .then(response => response.json())
+      .then(data => {
+        exBusData = data;
+
+        // ربط بيانات EX_Bus مع Bus.geojson
+        L.geoJSON(busData, {
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);
+          },
+          onEachFeature: function(feature, layer) {
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+
+            // ربط الاسم من Bus.geojson مع EX_Bus.json
+            const matchingExBus = exBusData.find(item => item.Name === feature.properties.Name);
+            
+            if (matchingExBus) {
+              popupContent += "<tr><th>الموقع</th><td>" + matchingExBus.Location + "</td></tr>";
+              popupContent += "<tr><th>وجهة التوصيل</th><td>" + matchingExBus.to_Where_1 + "</td></tr>";
+              popupContent += "<tr><th>أجرة التوصيل</th><td>" + matchingExBus.Fees + "</td></tr>";
+              popupContent += "<tr><th>الوقت</th><td>" + matchingExBus.Time + "</td></tr>";
+            } else {
+              popupContent += "<tr><td colspan='2'>لا توجد بيانات إضافية</td></tr>";
+            }
+
+            popupContent += "</table>";
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(map);
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات EX_Bus:', error));
+  </script>
+</body>
+</html>
