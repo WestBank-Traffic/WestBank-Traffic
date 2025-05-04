@@ -99,7 +99,6 @@
       maxZoom: 20
     }).addTo(map);
 
-    var markers = L.markerClusterGroup();
     var busData; // لتخزين بيانات bus.geojson
 
     // تحميل بيانات الحافلات (Bus.geojson)
@@ -136,53 +135,12 @@
 
             // جمع الوجهات للقائمة المنسدلة
             destinations.add(feature.properties.to_Where_1);
-            markers.addLayer(layer);
+            map.addLayer(layer);
           }
-        });
-        map.addLayer(markers);
-
-        // تعبئة قائمة الوجهات
-        destinations.forEach(function(destination) {
-          var option = document.createElement("option");
-          option.value = destination;
-          option.text = destination;
-          destinationSelect.add(option);
         });
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
-    // تحميل بيانات EX_Bus.json (ربطها مع Bus.geojson)
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')  // رابط EX_Bus.json
-      .then(response => response.json())
-      .then(data => {
-        exBusData = data;
-
-        // ربط بيانات EX_Bus مع Bus.geojson
-        L.geoJSON(busData, {
-          pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });
-          },
-          onEachFeature: function(feature, layer) {
-            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
-
-            // ربط الاسم من Bus.geojson مع EX_Bus.json
-            const matchingExBus = exBusData.find(item => item.Name === feature.properties.Name);
-            
-            if (matchingExBus) {
-              popupContent += "<tr><th>الموقع</th><td>" + matchingExBus.Location + "</td></tr>";
-              popupContent += "<tr><th>وجهة التوصيل</th><td>" + matchingExBus.to_Where_1 + "</td></tr>";
-              popupContent += "<tr><th>أجرة التوصيل</th><td>" + matchingExBus.Fees + "</td></tr>";
-              popupContent += "<tr><th>الوقت</th><td>" + matchingExBus.Time + "</td></tr>";
-            } else {
-              popupContent += "<tr><td colspan='2'>لا توجد بيانات إضافية</td></tr>";
-            }
-
-            popupContent += "</table>";
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(map);
-      })
-      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات EX_Bus:', error));
   </script>
 </body>
 </html>
