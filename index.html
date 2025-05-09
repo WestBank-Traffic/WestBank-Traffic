@@ -38,50 +38,12 @@
       text-align: center;
       flex: 2;
     }
-    #question-box {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      flex: 1;
-    }
-    #question-form {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #question-box h2 {
-      margin: 0 0 10px 0;
-    }
-    #question-box label, #question-box select, #question-box button {
-      margin-bottom: 5px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid black;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <div id="control-box">
-    <div id="question-box">
-      <h2>أسئلة حول مواقف السيارات</h2>
-      <form id="question-form">
-        <label for="destination">وجهة التوصيل:</label>
-        <select id="destination" name="destination"></select>
-        <button type="submit">إظهار الموقف</button>
-        <button id="route-button" type="button">تحديد المسار</button>
-      </form>
-    </div>
     <div class="leaflet-control-title">مواقع مواقف السيارات في مدينة رام الله</div>
   </div>
 
@@ -106,8 +68,6 @@
       .then(response => response.json())
       .then(data => {
         busData = data;
-        var destinationSelect = document.getElementById("destination");
-        var destinations = new Set();
 
         // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
@@ -132,9 +92,6 @@
             popupContent += "</table>";
 
             layer.bindPopup(popupContent);
-
-            // جمع الوجهات للقائمة المنسدلة
-            destinations.add(feature.properties.to_Where_1);
             map.addLayer(layer);
           }
         });
