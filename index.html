@@ -17,35 +17,10 @@
     #map {
       height: 100%;
     }
-    #control-box {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
-      align-items: center;
-    }
-    .leaflet-control-title {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      flex: 2;
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
-  <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية </div>
-  </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
@@ -62,6 +37,17 @@
     }).addTo(map);
 
     var busData; // لتخزين بيانات bus.geojson
+    var exBusData = {}; // لتخزين بيانات EX_Bus.json
+
+    // تحميل بيانات EX_Bus.json (أو بيانات Excel المحولة إلى JSON)
+    fetch('رابط EX_Bus.json')  // هنا تضع رابط الملف
+      .then(response => response.json())
+      .then(data => {
+        data.forEach(item => {
+          exBusData[item.الاسم] = item;  // نقوم بتخزين البيانات في كائن حسب الاسم
+        });
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل EX_Bus.json:', error));
 
     // تحميل بيانات الحافلات (Bus.geojson)
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
@@ -82,13 +68,17 @@
             return L.marker(latlng, { icon: busIcon });
           },
           onEachFeature: function(feature, layer) {
+            // البحث عن المحطة في EX_Bus.json باستخدام الاسم
+            var stationName = feature.properties.Name;  // هذا يعتمد على اسم الحقل في Bus.geojson
+            var additionalData = exBusData[stationName];  // إذا وجدنا تطابقًا مع اسم المحطة
+
             // عرض البيانات في الـ popup
             var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
             popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
             popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
             popupContent += "<tr><th>أجرة التوصيل</th><td>" + (feature.properties.Fees || 'غير محدد') + "</td></tr>";
             popupContent += "<tr><th>الوقت</th><td>" + (feature.properties.Time || 'غير محدد') + "</td></tr>";
-            popupContent += "<tr><th>اسم المجمع</th><td>" + (feature.properties.Name || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + (additionalData ? additionalData.الاسم : 'غير محدد') + "</td></tr>";  // إضافة بيانات EX_Bus.json
             popupContent += "</table>";
 
             layer.bindPopup(popupContent);
