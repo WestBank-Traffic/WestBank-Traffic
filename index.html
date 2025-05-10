@@ -94,8 +94,12 @@
             layer.on('click', function() {
               var busName = feature.properties.الاسم;  // الحصول على اسم الباص
 
+              // إضافة Console Log للمراجعة
+              console.log("الاسم من Bus.geojson:", busName);
+              console.log("مجمع الخطوط (كراج) من EX_Bus:", busData.map(bus => bus['مجمع الخطوط (كراج)']));
+
               // البحث في بيانات EX_Bus.json حسب الاسم
-              var matchingBus = busData.find(bus => bus['مجمع الخطوط (كراج)'] === busName);
+              var matchingBus = busData.find(bus => bus['مجمع الخطوط (كراج)'].trim().toLowerCase() === busName.trim().toLowerCase());
 
               // إذا تم العثور على تطابق، إظهار البيانات
               if (matchingBus) {
