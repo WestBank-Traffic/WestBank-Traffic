@@ -72,7 +72,7 @@
         // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-          iconSize: [30, 30],  // حجم مناسب
+          iconSize: [30, 30],  // حجم مناسب للباصات
           iconAnchor: [15, 30],  // نقطة الارتكاز
           popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
@@ -90,14 +90,25 @@
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
-        // إضافة نقاط checkpoint إلى الخريطة
+        console.log(data);  // طباعة البيانات في وحدة التحكم للتأكد من تحميلها بشكل صحيح
+
+        // تحديد أيقونة أصغر لطبقة الحواجز
+        var checkpointIcon = L.icon({
+          iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Info_icon_2.svg/1200px-Info_icon_2.svg.png',  // مثال على أيقونة
+          iconSize: [20, 20],  // حجم أصغر من الباصات
+          iconAnchor: [10, 10],  // نقطة الارتكاز
+          popupAnchor: [0, -10]  // مكان ظهور البوب أب
+        });
+
+        // إضافة نقاط checkpoint إلى الخريطة باستخدام أيقونة أصغر
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng);  // إضافة علامة عادية للنقاط
+            return L.marker(latlng, { icon: checkpointIcon });  // عرض النقاط باستخدام أيقونة أصغر
           }
         }).addTo(map);
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات checkpoint:', error));
+
   </script>
 </body>
 </html>
