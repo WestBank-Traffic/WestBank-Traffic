@@ -65,6 +65,7 @@
       .then(response => response.json())
       .then(data => {
         busData = data;
+        console.log('تم تحميل بيانات EX_Bus بنجاح:', busData);
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات EX_Bus:', error));
 
@@ -75,6 +76,7 @@
       .then(response => response.json())
       .then(data => {
         geoJsonData = data;
+        console.log('تم تحميل بيانات Bus.geojson بنجاح:', geoJsonData);
 
         var busIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
