@@ -105,14 +105,14 @@
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحواجز:', error));
 
-    // إضافة طبقة الطرق (Road.geojson)
+    // إضافة طبقة الطرق (Road.geojson) مع اللون السكني الغامق
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Road.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
-        // تحديد اللون السكني المتوسط للطرق
+        // تحديد اللون السكني الأغمق للطرق
         L.geoJSON(data, {
           style: function() {
-            return { color: "#D3D3D3", weight: 3 };  // تعيين اللون السكني المتوسط للطرق
+            return { color: "#A9A9A9", weight: 2 };  // تعيين اللون السكني الأغمق للطرق مع تقليل العرض
           }
         }).addTo(map);
       })
