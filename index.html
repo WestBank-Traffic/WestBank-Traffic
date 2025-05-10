@@ -45,6 +45,9 @@
     <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     var map = L.map('map').setView([32.0, 35.5], 9);  // إعداد الخريطة مع الزوم المناسب
 
@@ -95,8 +98,11 @@
 
               // البحث في بيانات EX_Bus.json حسب الاسم
               var matchingBus = busData.find(bus => {
+                // تطبيع القيم: إزالة المسافات وتحويل الحروف إلى صغيرة
                 var busNameCleaned = bus['مجمع الخطوط (كراج)'].trim().toLowerCase();
                 var busNameFromGeoJson = busName.trim().toLowerCase();
+
+                // طباعة القيم للمقارنة
                 console.log("قيمة الباص من EX_Bus:", busNameCleaned);
                 console.log("قيمة الباص من Bus.geojson:", busNameFromGeoJson);
                 return busNameCleaned === busNameFromGeoJson;
