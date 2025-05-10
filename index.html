@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>خريطة مواقف الحافلات والخطوط</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
     html, body {
       height: 100%;
@@ -17,39 +14,12 @@
     #map {
       height: 100%;
     }
-    #control-box {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
-      align-items: center;
-    }
-    .leaflet-control-title {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      flex: 2;
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام في الضفة الغربية</div>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     // إعداد الخريطة مع الزوم على الضفة الغربية
     var map = L.map('map').setView([32.0, 35.5], 9);  // إحداثيات الضفة الغربية ومستوى التكبير
@@ -65,16 +35,14 @@
     fetch('https://raw.githubusercontent.com/username/repository/branch/Bus_westbank.geojson')  // الرابط لملف GeoJSON الجديد
       .then(response => response.json())
       .then(data => {
-        console.log(data);  // تحقق من أن البيانات تم تحميلها بشكل صحيح
-
         // إضافة البيانات على الخريطة باستخدام geoJSON
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng);  // بدون أيقونة، عرض النقاط بشكل عادي
+            return L.marker(latlng);  // عرض النقاط بدون أيقونة، كمؤشرات عادية
           }
         }).addTo(map);
-      });
-
+      })
+      .catch(error => console.log('حدث خطأ أثناء تحميل البيانات:', error));
   </script>
 </body>
 </html>
