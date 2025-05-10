@@ -61,15 +61,10 @@
       maxZoom: 20
     }).addTo(map);
 
-    var busData; // لتخزين بيانات bus.geojson
-
-    // تحميل بيانات الحافلات (Bus.geojson)
+    // إضافة طبقة الحافلات (Bus.geojson)
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
       .then(response => response.json())
       .then(data => {
-        busData = data;
-
-        // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
           iconSize: [30, 30],  // حجم مناسب للباصات
@@ -77,7 +72,6 @@
           popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
 
-        // إضافة بيانات Bus.geojson
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng, { icon: busIcon });
@@ -86,13 +80,10 @@
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
-    // إضافة طبقة checkpoint.geojson مع نفس الأيقونة لجميع النقاط
+    // إضافة طبقة الحواجز (checkpoint.geojson) مع نفس الأيقونة لجميع النقاط
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
-        console.log(data);  // طباعة البيانات في وحدة التحكم للتأكد من تحميلها بشكل صحيح
-
-        // تحديد الأيقونة الموحدة لجميع الحواجز
         var checkpointIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/ch.svg',  // رابط أيقونة ch.svg
           iconSize: [20, 20],  // حجم الأيقونة
@@ -100,14 +91,25 @@
           popupAnchor: [0, -20]  // مكان ظهور البوب أب
         });
 
-        // إضافة نقاط checkpoint إلى الخريطة باستخدام نفس الأيقونة
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: checkpointIcon });  // استخدام الأيقونة الموحدة لجميع الحواجز
+            return L.marker(latlng, { icon: checkpointIcon });
           }
         }).addTo(map);
       })
-      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات checkpoint:', error));
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحواجز:', error));
+
+    // إضافة طبقة الطرق (Road.geojson)
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Road.geojson')  // رابط GeoJSON للطبقة الجديدة
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: function() {
+            return { color: "#ff0000", weight: 3 };  // تعيين اللون الأحمر للطرق
+          }
+        }).addTo(map);
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الطرق:', error));
 
   </script>
 </body>
