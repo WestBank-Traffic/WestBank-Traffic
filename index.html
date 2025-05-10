@@ -17,35 +17,10 @@
     #map {
       height: 100%;
     }
-    #control-box {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
-      align-items: center;
-    }
-    .leaflet-control-title {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      flex: 2;
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
-  <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
-  </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
@@ -61,49 +36,44 @@
       maxZoom: 20
     }).addTo(map);
 
-    var busData; // لتخزين بيانات bus.geojson
-
-    // تحميل بيانات الحافلات (Bus.geojson)
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
-      .then(response => response.json())
-      .then(data => {
-        busData = data;
-
-        // تحميل الرمز من الملف SVG
-        var busIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-          iconSize: [30, 30],  // حجم مناسب للباصات
-          iconAnchor: [15, 30],  // نقطة الارتكاز
-          popupAnchor: [0, -30]  // مكان ظهور البوب أب
-        });
-
-        // إضافة بيانات Bus.geojson
-        L.geoJSON(data, {
-          pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });
-          }
-        }).addTo(map);
+    // تعريف الأيقونات لكل تصنيف
+    var icons = {
+      'Road Block': L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Stop_sign.svg/600px-Stop_sign.svg.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      }),
+      'Checkpoint': L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Green_circle.svg/200px-Green_circle.svg.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      }),
+      'Earthmound': L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Earth_icon.svg/200px-Earth_icon.svg.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      }),
+      'Partial Checkpoint': L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Info_icon_2.svg/1200px-Info_icon_2.svg.png',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10]
       })
-      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
+    };
 
-    // إضافة طبقة checkpoint.geojson
+    // تحميل بيانات checkpoint.geojson
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
-        console.log(data);  // طباعة البيانات في وحدة التحكم للتأكد من تحميلها بشكل صحيح
-
-        // تحديد أيقونة أصغر لطبقة الحواجز
-        var checkpointIcon = L.icon({
-          iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Info_icon_2.svg/1200px-Info_icon_2.svg.png',  // مثال على أيقونة
-          iconSize: [20, 20],  // حجم أصغر من الباصات
-          iconAnchor: [10, 10],  // نقطة الارتكاز
-          popupAnchor: [0, -10]  // مكان ظهور البوب أب
-        });
-
-        // إضافة نقاط checkpoint إلى الخريطة باستخدام أيقونة أصغر
+        // إضافة نقاط checkpoint إلى الخريطة وتصنيفها حسب نوع الحاجز
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: checkpointIcon });  // عرض النقاط باستخدام أيقونة أصغر
+            // اختيار الأيقونة بناءً على نوع الحاجز
+            var icon = icons[feature.properties.Type] || icons['Partial Checkpoint'];  // إذا لم يكن هناك نوع يتم استخدام أيقونة الحاجز الجزئي
+            return L.marker(latlng, { icon: icon });
           }
         }).addTo(map);
       })
