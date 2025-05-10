@@ -67,18 +67,10 @@
       .then(data => {
         console.log(data);  // تحقق من أن البيانات تم تحميلها بشكل صحيح
 
-        // تحميل الأيقونة من ملف SVG
-        var busIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-          iconSize: [30, 30],  // حجم مناسب
-          iconAnchor: [15, 30],  // نقطة الارتكاز
-          popupAnchor: [0, -30]  // مكان ظهور البوب أب
-        });
-
         // إضافة البيانات على الخريطة باستخدام geoJSON
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });  // استخدام الأيقونة المخصصة
+            return L.marker(latlng);  // بدون أيقونة، عرض النقاط بشكل عادي
           }
         }).addTo(map);
       });
