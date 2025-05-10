@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>خريطة مواقف الحافلات والخطوط</title>
+  <title>خريطة مواقف السيارات والخطوط</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
     html, body {
       height: 100%;
@@ -14,35 +17,87 @@
     #map {
       height: 100%;
     }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      width: calc(100% - 20px);
+      margin: 0 10px;
+      align-items: center;
+    }
+    .leaflet-control-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      flex: 2;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
+  <div id="control-box">
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     // إعداد الخريطة مع الزوم على الضفة الغربية
-    var map = L.map('map').setView([32.0, 35.5], 9);  // إحداثيات الضفة الغربية ومستوى التكبير
+    var map = L.map('map').setView([32.0, 35.5], 9);  // إحداثيات للضفة الغربية مع مستوى تكبير مناسب
 
-    // إضافة طبقة الأساس (Basemap)
+    // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // تحميل بيانات Bus_westbank.geojson
-    fetch('https://raw.githubusercontent.com/username/repository/branch/Bus_westbank.geojson')  // الرابط لملف GeoJSON الجديد
+    var busData; // لتخزين بيانات bus.geojson
+
+    // تحميل بيانات الحافلات (Bus.geojson)
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
       .then(response => response.json())
       .then(data => {
-        // إضافة البيانات على الخريطة باستخدام geoJSON
+        busData = data;
+
+        // تحميل الرمز من الملف SVG
+        var busIcon = L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+          iconSize: [30, 30],  // حجم مناسب
+          iconAnchor: [15, 30],  // نقطة الارتكاز
+          popupAnchor: [0, -30]  // مكان ظهور البوب أب
+        });
+
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng);  // عرض النقاط بدون أيقونة، كمؤشرات عادية
+            return L.marker(latlng, { icon: busIcon });
+          },
+          onEachFeature: function(feature, layer) {
+            // عرض البيانات في الـ popup
+            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+            popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>أجرة التوصيل</th><td>" + (feature.properties.Fees || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>الوقت</th><td>" + (feature.properties.Time || 'غير محدد') + "</td></tr>";
+            popupContent += "<tr><th>اسم المجمع</th><td>" + (feature.properties.Name || 'غير محدد') + "</td></tr>";
+            popupContent += "</table>";
+
+            layer.bindPopup(popupContent);
+            map.addLayer(layer);
           }
-        }).addTo(map);
+        });
       })
-      .catch(error => console.log('حدث خطأ أثناء تحميل البيانات:', error));
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
+
   </script>
 </body>
 </html>
