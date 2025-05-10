@@ -61,10 +61,15 @@
       maxZoom: 20
     }).addTo(map);
 
-    // إضافة طبقة الحافلات (Bus.geojson)
+    var busData; // لتخزين بيانات bus.geojson
+
+    // تحميل بيانات الحافلات (Bus.geojson)
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')  // رابط GeoJSON
       .then(response => response.json())
       .then(data => {
+        busData = data;
+
+        // تحميل الرمز من الملف SVG
         var busIcon = L.icon({
           iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
           iconSize: [30, 30],  // حجم مناسب للباصات
@@ -72,6 +77,7 @@
           popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
 
+        // إضافة بيانات Bus.geojson
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng, { icon: busIcon });
@@ -103,9 +109,10 @@
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Road.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
+        // تحديد اللون السكني المتوسط للطرق
         L.geoJSON(data, {
           style: function() {
-            return { color: "#ff0000", weight: 3 };  // تعيين اللون الأحمر للطرق
+            return { color: "#D3D3D3", weight: 3 };  // تعيين اللون السكني المتوسط للطرق
           }
         }).addTo(map);
       })
