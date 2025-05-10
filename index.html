@@ -86,24 +86,24 @@
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
-    // إضافة طبقة checkpoint.geojson
+    // إضافة طبقة checkpoint.geojson مع نفس الأيقونة لجميع النقاط
     fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
         console.log(data);  // طباعة البيانات في وحدة التحكم للتأكد من تحميلها بشكل صحيح
 
-        // تحديد أيقونة أصغر لطبقة الحواجز
+        // تحديد الأيقونة الموحدة لجميع الحواجز
         var checkpointIcon = L.icon({
-          iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Info_icon_2.svg/1200px-Info_icon_2.svg.png',  // مثال على أيقونة
-          iconSize: [20, 20],  // حجم أصغر من الباصات
-          iconAnchor: [10, 10],  // نقطة الارتكاز
-          popupAnchor: [0, -10]  // مكان ظهور البوب أب
+          iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/ch.svg',  // رابط أيقونة ch.svg
+          iconSize: [20, 20],  // حجم الأيقونة
+          iconAnchor: [10, 20],  // نقطة الارتكاز
+          popupAnchor: [0, -20]  // مكان ظهور البوب أب
         });
 
-        // إضافة نقاط checkpoint إلى الخريطة باستخدام أيقونة أصغر
+        // إضافة نقاط checkpoint إلى الخريطة باستخدام نفس الأيقونة
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
-            return L.marker(latlng, { icon: checkpointIcon });  // عرض النقاط باستخدام أيقونة أصغر
+            return L.marker(latlng, { icon: checkpointIcon });  // استخدام الأيقونة الموحدة لجميع الحواجز
           }
         }).addTo(map);
       })
