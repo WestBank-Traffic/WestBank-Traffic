@@ -52,7 +52,7 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     // إعداد الخريطة مع الزوم على الضفة الغربية
-    var map = L.map('map').setView([32.0, 35.5], 9);  // إحداثيات للضفة الغربية مع مستوى تكبير مناسب
+    var map = L.map('map').setView([32.0, 35.5], 10);  // تأكد أن مستوى التكبير مناسب لعرض النقاط
 
     // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -67,6 +67,7 @@
     fetch('https://raw.githubusercontent.com/username/repository/branch/Bus_westbank.geojson')  // رابط GeoJSON الجديد
       .then(response => response.json())
       .then(data => {
+        console.log(data);  // تحقق من أن البيانات تم تحميلها بشكل صحيح
         busData = data;
 
         // تحميل الرمز من الملف SVG
