@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>خريطة مواقف السيارات والخطوط</title>
+  <title>خريطة مواقف الحافلات والخطوط</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
@@ -44,7 +44,7 @@
   <div id="map"></div>
 
   <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية </div>
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -77,6 +77,7 @@
           popupAnchor: [0, -30]  // مكان ظهور البوب أب
         });
 
+        // إضافة بيانات Bus.geojson
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng, { icon: busIcon });
@@ -86,7 +87,7 @@
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
 
     // إضافة طبقة checkpoint.geojson
-    fetch('https://raw.githubusercontent.com/username/repository/branch/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
       .then(response => response.json())
       .then(data => {
         // إضافة نقاط checkpoint إلى الخريطة
@@ -97,7 +98,6 @@
         }).addTo(map);
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات checkpoint:', error));
-
   </script>
 </body>
 </html>
