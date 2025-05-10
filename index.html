@@ -80,23 +80,23 @@
         L.geoJSON(data, {
           pointToLayer: function(feature, latlng) {
             return L.marker(latlng, { icon: busIcon });
-          },
-          onEachFeature: function(feature, layer) {
-            // عرض البيانات في الـ popup
-            var popupContent = "<table border='1' style='border-collapse: collapse; width: 100%;'>";
-            popupContent += "<tr><th>الموقع</th><td>" + (feature.properties.Location || 'غير محدد') + "</td></tr>";
-            popupContent += "<tr><th>وجهة التوصيل</th><td>" + (feature.properties.to_Where_1 || 'غير محدد') + "</td></tr>";
-            popupContent += "<tr><th>أجرة التوصيل</th><td>" + (feature.properties.Fees || 'غير محدد') + "</td></tr>";
-            popupContent += "<tr><th>الوقت</th><td>" + (feature.properties.Time || 'غير محدد') + "</td></tr>";
-            popupContent += "<tr><th>اسم المجمع</th><td>" + (feature.properties.Name || 'غير محدد') + "</td></tr>";
-            popupContent += "</table>";
-
-            layer.bindPopup(popupContent);
-            map.addLayer(layer);
           }
-        });
+        }).addTo(map);
       })
       .catch(error => console.error('حدث خطأ أثناء تحميل بيانات الحافلات:', error));
+
+    // إضافة طبقة checkpoint.geojson
+    fetch('https://raw.githubusercontent.com/username/repository/branch/checkpoint.geojson')  // رابط GeoJSON للطبقة الجديدة
+      .then(response => response.json())
+      .then(data => {
+        // إضافة نقاط checkpoint إلى الخريطة
+        L.geoJSON(data, {
+          pointToLayer: function(feature, latlng) {
+            return L.marker(latlng);  // إضافة علامة عادية للنقاط
+          }
+        }).addTo(map);
+      })
+      .catch(error => console.error('حدث خطأ أثناء تحميل بيانات checkpoint:', error));
 
   </script>
 </body>
