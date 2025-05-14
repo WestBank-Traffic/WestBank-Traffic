@@ -3,21 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
+  <title>خريطة مراكز النقل العام مع بيانات إضافية</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   />
   <style>
-    html,
-    body {
+    html, body, #map {
       height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
+      margin: 0; padding: 0;
     }
   </style>
 </head>
@@ -26,71 +20,71 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    var map = L.map("map").setView([32.0, 35.5], 10);
+    // تهيئة الخريطة
+    var map = L.map("map").setView([32.0, 35.5], 11);
 
+    // إضافة طبقة الخريطة الأساسية
     L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 20,
       }
     ).addTo(map);
 
-    // تحميل ملف البيانات الإضافية (EX_Bus.json)
-    let extraData = [];
+    // تحميل ملفات البيانات
+    Promise.all([
+      fetch("https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson").then((r) => r.json()),
+      fetch("https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json").then((r) => r.json()),
+    ]).then(([busData, exBusData]) => {
+      // تجهيز قاموس للربط: مفتاح هو "مجمع الخطوط (كراج)" من EX_Bus.json
+      let exBusDict = {};
+      exBusData.Sheet1.forEach((item) => {
+        exBusDict[item["مجمع الخطوط (كراج)"]] = item;
+      });
 
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')
-      .then(response => response.json())
-      .then(data => {
-        extraData = data;
-        loadBusData();
-      })
-      .catch(error => console.error('خطأ بتحميل بيانات EX_Bus.json:', error));
+      // تعريف أيقونة حمراء للمحطات
+      var stationIcon = L.icon({
+        iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Red_triangle_up.svg/40px-Red_triangle_up.svg.png",
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15],
+      });
 
-    // تحميل ملف النقاط Bus.geojson
-    function loadBusData() {
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')
-        .then(response => response.json())
-        .then(busData => {
-          var busIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-            iconSize: [30, 30],
-            iconAnchor: [15, 30],
-            popupAnchor: [0, -30],
-          });
+      // إضافة نقاط المحطات مع البوب أب المرتبط
+      L.geoJSON(busData, {
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng, { icon: stationIcon });
+        },
+        onEachFeature: function (feature, layer) {
+          // اسم المحطة في ملف GeoJSON
+          let stationName = feature.properties["الاسم"];
 
-          L.geoJSON(busData, {
-            pointToLayer: function(feature, latlng) {
-              return L.marker(latlng, { icon: busIcon });
-            },
-            onEachFeature: function(feature, layer) {
-              // حقل الربط بين الملفات، عدله حسب اسم الحقل المشترك بالضبط
-              const keyFieldGeoJSON = 'name';  // أو 'الاسم' حسب ملفك
-              const keyFieldExtra = 'مجمع الخطوط (كراج)';
+          // الحصول على بيانات EX_Bus المرتبطة
+          let exData = exBusDict[stationName];
 
-              let keyValue = feature.properties[keyFieldGeoJSON];
+          // بناء محتوى البوب أب
+          let popupContent = `<b>اسم المحطة:</b> ${stationName}<br/>`;
 
-              // البحث عن بيانات مرتبطة في ملف EX_Bus.json
-              let relatedData = extraData.find(item => item[keyFieldExtra] === keyValue);
+          if (exData) {
+            popupContent += `<b>بداية الخط - محافظة:</b> ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
+            popupContent += `<b>بداية الخط - مدينة:</b> ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
+            popupContent += `<b>نهاية الخط - مدينة:</b> ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
+            popupContent += `<b>أجرة المواصلات:</b> ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
+            popupContent += `<b>حالة الخط:</b> ${exData["حالة الخط"] || "-"}<br/>`;
+            popupContent += `<b>مسار الخط ذهاب و إياب:</b> ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية.</i>`;
+          }
 
-              let popupContent = `<b>محطة:</b> ${keyValue || "غير معروف"}<br>`;
-
-              if (relatedData) {
-                // اعرض البيانات المرتبطة (غير هذا حسب حقولك)
-                for (const [k, v] of Object.entries(relatedData)) {
-                  popupContent += `<b>${k}:</b> ${v}<br>`;
-                }
-              } else {
-                popupContent += "لا توجد بيانات مرتبطة.";
-              }
-
-              layer.bindPopup(popupContent);
-            }
-          }).addTo(map);
-        })
-        .catch(error => console.error('خطأ بتحميل بيانات Bus.geojson:', error));
-    }
+          layer.bindPopup(popupContent);
+        },
+      }).addTo(map);
+    }).catch((err) => {
+      console.error("خطأ في تحميل البيانات أو معالجتها:", err);
+      alert("حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.");
+    });
   </script>
 </body>
 </html>
