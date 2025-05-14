@@ -3,22 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>خريطة مواقف الحافلات والخطوط</title>
+  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
   />
   <style>
     html,
@@ -28,148 +16,81 @@
       padding: 0;
     }
     #map {
-      height: 100%;
-    }
-    #control-box {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
-      align-items: center;
-    }
-    .leaflet-control-title {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      flex: 2;
+      height: 100vh;
+      width: 100%;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="control-box">
-    <div class="leaflet-control-title">
-      مواقع مراكز النقل العام -الفردات- في الضفة الغربية
-    </div>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
-    var map = L.map("map").setView([32.0, 35.5], 9);
+    var map = L.map("map").setView([32.0, 35.5], 10);
 
     L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
         maxZoom: 20,
       }
     ).addTo(map);
 
-    // أيقونة الباص
-    var busIcon = L.icon({
-      iconUrl:
-        "https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg",
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -30],
-    });
+    // تحميل ملف البيانات الإضافية (EX_Bus.json)
+    let extraData = [];
 
-    // تحميل بيانات Bus_merged.geojson (بيانات مدموجة)
-    fetch(
-      "https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus_merged.geojson"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        L.geoJSON(data, {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });
-          },
-          onEachFeature: function (feature, layer) {
-            // تكوين محتوى البوب أب حسب خصائص كل نقطة
-            var props = feature.properties;
-            var popupContent = `<b>محطة:</b> ${props["name"] || props["الاسم"] || "غير معروف"}<br>`;
+    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json')
+      .then(response => response.json())
+      .then(data => {
+        extraData = data;
+        loadBusData();
+      })
+      .catch(error => console.error('خطأ بتحميل بيانات EX_Bus.json:', error));
 
-            // مثال لعرض بيانات الركاب أو خصائص إضافية
-            if (props["عدد الركاب"]) {
-              popupContent += `<b>عدد الركاب:</b> ${props["عدد الركاب"]}<br>`;
-            }
-            if (props["مجمع الخطوط (كراج)"]) {
-              popupContent += `<b>مجمع الخطوط (كراج):</b> ${props["مجمع الخطوط (كراج)"]}<br>`;
-            }
+    // تحميل ملف النقاط Bus.geojson
+    function loadBusData() {
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson')
+        .then(response => response.json())
+        .then(busData => {
+          var busIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30],
+          });
 
-            // عرض أي حقول إضافية بشكل ديناميكي (اختياري)
-            for (const key in props) {
-              if (
-                ![
-                  "name",
-                  "الاسم",
-                  "عدد الركاب",
-                  "مجمع الخطوط (كراج)",
-                  "geometry",
-                ].includes(key)
-              ) {
-                popupContent += `<b>${key}:</b> ${props[key]}<br>`;
+          L.geoJSON(busData, {
+            pointToLayer: function(feature, latlng) {
+              return L.marker(latlng, { icon: busIcon });
+            },
+            onEachFeature: function(feature, layer) {
+              // حقل الربط بين الملفات، عدله حسب اسم الحقل المشترك بالضبط
+              const keyFieldGeoJSON = 'name';  // أو 'الاسم' حسب ملفك
+              const keyFieldExtra = 'مجمع الخطوط (كراج)';
+
+              let keyValue = feature.properties[keyFieldGeoJSON];
+
+              // البحث عن بيانات مرتبطة في ملف EX_Bus.json
+              let relatedData = extraData.find(item => item[keyFieldExtra] === keyValue);
+
+              let popupContent = `<b>محطة:</b> ${keyValue || "غير معروف"}<br>`;
+
+              if (relatedData) {
+                // اعرض البيانات المرتبطة (غير هذا حسب حقولك)
+                for (const [k, v] of Object.entries(relatedData)) {
+                  popupContent += `<b>${k}:</b> ${v}<br>`;
+                }
+              } else {
+                popupContent += "لا توجد بيانات مرتبطة.";
               }
+
+              layer.bindPopup(popupContent);
             }
-
-            layer.bindPopup(popupContent);
-          },
-        }).addTo(map);
-      })
-      .catch((error) =>
-        console.error("حدث خطأ أثناء تحميل بيانات الحافلات:", error)
-      );
-
-    // تحميل طبقة الحواجز
-    fetch(
-      "https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        var checkpointIcon = L.icon({
-          iconUrl:
-            "https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/ch.svg",
-          iconSize: [20, 20],
-          iconAnchor: [10, 20],
-          popupAnchor: [0, -20],
-        });
-
-        L.geoJSON(data, {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: checkpointIcon });
-          },
-        }).addTo(map);
-      })
-      .catch((error) =>
-        console.error("حدث خطأ أثناء تحميل بيانات الحواجز:", error)
-      );
-
-    // تحميل طبقة الطرق مع نمط اللون الداكن
-    fetch(
-      "https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Road.geojson"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        L.geoJSON(data, {
-          style: function () {
-            return { color: "#A9A9A9", weight: 2 };
-          },
-        }).addTo(map);
-      })
-      .catch((error) => console.error("حدث خطأ أثناء تحميل بيانات الطرق:", error));
+          }).addTo(map);
+        })
+        .catch(error => console.error('خطأ بتحميل بيانات Bus.geojson:', error));
+    }
   </script>
 </body>
 </html>
