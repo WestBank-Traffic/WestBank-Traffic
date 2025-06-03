@@ -46,34 +46,50 @@
     }
     .destination-panel {
       position: absolute;
-      top: 40px;
+      top: 60px; /* رفع المسافة عن الأعلى */
       right: 0;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      z-index: 1100;
-      width: 200px;
+      background: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      z-index: 2000;
+      width: 220px;
       display: none;
     }
     .destination-panel.show {
       display: block;
     }
-    .destination-panel label,
+    .destination-panel label {
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: block;
+      color: #000;
+      font-weight: 600;
+    }
     .destination-panel select {
       width: 100%;
-      display: block;
-      margin-bottom: 8px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      color: #000;
+      background-color: #fff;
+      margin-bottom: 15px;
     }
     .destination-panel button {
       width: 100%;
-      padding: 6px;
-      background: #1976d2;
-      color: white;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
       border: none;
-      border-radius: 3px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    .destination-panel button:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
@@ -100,7 +116,7 @@
     }).addTo(map);
 
     var DestinationControl = L.Control.extend({
-      options: { position: 'topleft' },  // هنا موقع الزر على اليسار
+      options: { position: 'topleft' },
       onAdd: function(map) {
         var container = L.DomUtil.create('div', 'destination-control');
         container.innerHTML = 'اختيار الوجهة ▼';
