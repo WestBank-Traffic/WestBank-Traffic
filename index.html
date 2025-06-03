@@ -121,8 +121,20 @@
 
         container.appendChild(panel);
 
+        // منع تمرير أحداث النقر والتمرير للخريطة
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.disableScrollPropagation(container);
+
+        L.DomEvent.disableClickPropagation(panel);
+        L.DomEvent.disableScrollPropagation(panel);
+
+        const select = panel.querySelector('#destination-select');
+        L.DomEvent.disableClickPropagation(select);
+        L.DomEvent.disableScrollPropagation(select);
+
+        const btn = panel.querySelector('#go-btn');
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.disableScrollPropagation(btn);
 
         container.addEventListener('click', function(e) {
           if (panel.classList.contains('show')) {
@@ -159,7 +171,6 @@
 
       // تعبئة قائمة الوجهات
       let select = document.getElementById('destination-select');
-      // تنظيف القائمة باستثناء الخيار الافتراضي
       select.innerHTML = '<option value="">-- اختر --</option>';
       destinationsArray.forEach(dest => {
         let option = document.createElement('option');
@@ -225,7 +236,6 @@
           layer.bindPopup(popupContent);
         }
       }).addTo(map);
-
     }).catch(err => {
       console.error('خطأ في تحميل البيانات أو معالجتها:', err);
       alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
