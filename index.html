@@ -115,10 +115,6 @@
           <label for="destination-select">اختر وجهتك:</label>
           <select id="destination-select">
             <option value="">-- اختر --</option>
-            <option value="Ramallah">رام الله</option>
-            <option value="Nablus">نابلس</option>
-            <option value="Hebron">الخليل</option>
-            <option value="Jericho">أريحا</option>
           </select>
           <button id="go-btn">اذهب</button>
         `;
@@ -136,29 +132,6 @@
           }
         });
 
-        panel.querySelector('#go-btn').addEventListener('click', function(e) {
-          e.stopPropagation();
-
-          var select = panel.querySelector('#destination-select');
-          var dest = select.value;
-          if (!dest) {
-            alert('يرجى اختيار وجهة أولاً');
-            return;
-          }
-
-          var locations = {
-            "Ramallah": [31.9074, 35.2034],
-            "Nablus": [32.2211, 35.2544],
-            "Hebron": [31.5326, 35.0998],
-            "Jericho": [31.8719, 35.4486]
-          };
-
-          if (locations[dest]) {
-            map.setView(locations[dest], 13);
-          }
-          panel.classList.remove('show');
-        });
-
         return container;
       }
     });
@@ -174,6 +147,54 @@
         exBusDictNormalized[normalizeText(item["مجمع الخطوط (كراج)"])] = item;
       });
 
+      // جمع جميع أسماء "نهاية الخط - مدينة" بدون تكرار
+      let destinationsSet = new Set();
+      exBusData.Sheet1.forEach(item => {
+        if (item["نهاية الخط - مدينة"]) {
+          destinationsSet.add(item["نهاية الخط - مدينة"]);
+        }
+      });
+
+      let destinationsArray = Array.from(destinationsSet).sort();
+
+      // تعبئة قائمة الوجهات
+      let select = document.getElementById('destination-select');
+      // تنظيف القائمة باستثناء الخيار الافتراضي
+      select.innerHTML = '<option value="">-- اختر --</option>';
+      destinationsArray.forEach(dest => {
+        let option = document.createElement('option');
+        option.value = dest;
+        option.textContent = dest;
+        select.appendChild(option);
+      });
+
+      // إحداثيات تقريبية للوجهات (يمكن تعديلها أو إضافة المزيد)
+      var locations = {
+        "رام الله": [31.9074, 35.2034],
+        "نابلس": [32.2211, 35.2544],
+        "الخليل": [31.5326, 35.0998],
+        "أريحا": [31.8719, 35.4486],
+        // أضف المزيد حسب الحاجة
+      };
+
+      // التعامل مع زر "اذهب"
+      document.getElementById('go-btn').onclick = function(e) {
+        e.stopPropagation();
+
+        var dest = select.value;
+        if (!dest) {
+          alert('يرجى اختيار وجهة أولاً');
+          return;
+        }
+        if (locations[dest]) {
+          map.setView(locations[dest], 13);
+        } else {
+          alert('لا تتوفر إحداثيات لهذه الوجهة.');
+        }
+        select.parentElement.classList.remove('show');
+      };
+
+      // عرض المواقف على الخريطة
       var busIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
@@ -204,6 +225,7 @@
           layer.bindPopup(popupContent);
         }
       }).addTo(map);
+
     }).catch(err => {
       console.error('خطأ في تحميل البيانات أو معالجتها:', err);
       alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
