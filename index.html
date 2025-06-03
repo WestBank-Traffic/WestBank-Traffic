@@ -88,7 +88,6 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
-    // دالة لتطبيع النصوص (حذف فراغات وتحويل لصغير)
     function normalizeText(text) {
       return text ? text.trim().toLowerCase() : "";
     }
@@ -100,14 +99,12 @@
       maxZoom: 20
     }).addTo(map);
 
-    // إضافة زر اختيار الوجهة
     var DestinationControl = L.Control.extend({
-      options: { position: 'topright' },
+      options: { position: 'topleft' },  // هنا موقع الزر على اليسار
       onAdd: function(map) {
         var container = L.DomUtil.create('div', 'destination-control');
         container.innerHTML = 'اختيار الوجهة ▼';
 
-        // إنشاء لوحة الاختيار
         var panel = L.DomUtil.create('div', 'destination-panel');
         panel.innerHTML = `
           <label for="destination-select">اختر وجهتك:</label>
@@ -123,11 +120,9 @@
 
         container.appendChild(panel);
 
-        // التحكم بإيقاف تمرير الخريطة عند التفاعل مع العنصر
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.disableScrollPropagation(container);
 
-        // فتح وغلق لوحة الاختيار عند الضغط على الزر
         container.addEventListener('click', function(e) {
           if (panel.classList.contains('show')) {
             panel.classList.remove('show');
@@ -136,9 +131,8 @@
           }
         });
 
-        // التعامل مع زر "اذهب"
         panel.querySelector('#go-btn').addEventListener('click', function(e) {
-          e.stopPropagation(); // منع غلق اللوحة عند الضغط
+          e.stopPropagation();
 
           var select = panel.querySelector('#destination-select');
           var dest = select.value;
@@ -147,7 +141,6 @@
             return;
           }
 
-          // تحريك الخريطة للوجهة المختارة (مثال إحداثيات)
           var locations = {
             "Ramallah": [31.9074, 35.2034],
             "Nablus": [32.2211, 35.2544],
@@ -167,7 +160,6 @@
 
     map.addControl(new DestinationControl());
 
-    // بقية الكود الأصلي لتحميل البيانات وعرض المواقف
     Promise.all([
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json').then(r => r.json())
