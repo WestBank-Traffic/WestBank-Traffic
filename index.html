@@ -82,15 +82,33 @@
     }
     /* تنسيق مربع الوجهة داخل البوب أب */
     .popup-destination {
-      padding: 5px;
-      margin-bottom: 5px;
-      border: 1px solid #1976d2;
-      border-radius: 4px;
+      padding: 8px 15px;
+      margin-bottom: 8px;
+      border-radius: 20px;
       cursor: pointer;
-      background-color: #e3f2fd;
+      background-color: #bee1ff;
+      border: 1.5px solid #1976d2;
+      font-weight: 600;
+      font-size: 17px;
+      color: #0d47a1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.25s ease;
     }
     .popup-destination:hover {
-      background-color: #bbdefb;
+      background-color: #7aa9f9;
+      color: white;
+      border-color: #3f51b5;
+    }
+    .popup-destination b {
+      font-weight: 700;
+      margin-left: 10px;
+    }
+    /* صندوق البوب أب ليكون مع تمرير لو وجهات كثيرة */
+    .popup-content-wrapper {
+      max-height: 200px;
+      overflow-y: auto;
     }
   </style>
 </head>
@@ -232,7 +250,7 @@
           let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/><hr/>`;
 
           if (exDataArray.length > 0) {
-            popupContent += '<div style="max-height:150px; overflow-y:auto;">';
+            popupContent += '<div class="popup-content-wrapper">';
             exDataArray.forEach((exData, index) => {
               popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة: ${exData['نهاية الخط - مدينة']}')">`;
               popupContent += `<b>وجهة ${index + 1}:</b> ${exData["نهاية الخط - مدينة"] || "-"}`;
