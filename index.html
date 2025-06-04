@@ -153,18 +153,16 @@
 
     Promise.all([
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.txt')
-        .then(r => r.text())
-        .then(text => JSON.parse(text))
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
     ]).then(([busData, exBusData]) => {
       let exBusDictNormalized = {};
-      exBusData.Sheet1.forEach(item => {
+      exBusData.Employees.Employee.forEach(item => {
         exBusDictNormalized[normalizeText(item["مجمع الخطوط (كراج)"])] = item;
       });
 
       // جمع جميع أسماء "نهاية الخط - مدينة" بدون تكرار
       let destinationsSet = new Set();
-      exBusData.Sheet1.forEach(item => {
+      exBusData.Employees.Employee.forEach(item => {
         if (item["نهاية الخط - مدينة"]) {
           destinationsSet.add(item["نهاية الخط - مدينة"]);
         }
@@ -208,7 +206,7 @@
         select.parentElement.classList.remove('show');
       };
 
-      // عرض المواقف على الخريطة وربطها مع بيانات EX_BusWB.txt
+      // عرض المواقف على الخريطة وربطها مع بيانات EX_BusWB.json
       var busIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
