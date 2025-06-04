@@ -182,8 +182,8 @@
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BusLine.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/checkpoint.geojson').then(r => r.json()),
-    ]).then(([busData, exBusData, busLineData, checkpointData]) => {
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/RoadGates.json').then(r => r.json())
+    ]).then(([busData, exBusData, busLineData, roadGateData]) => {
       // تنظيف أسماء الحقول من الفراغات الزائدة
       exBusData.forEach(item => {
         for (const key in item) {
@@ -259,16 +259,16 @@
         }
       }).addTo(map);
 
-      // إضافة طبقة الـ checkpoint.geojson بلون أحمر
-      var checkpointIcon = L.icon({
+      // إضافة طبقة الـ RoadGates.json
+      var roadGateIcon = L.icon({
         iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png', // أيقونة حمراء
         iconSize: [25, 25],
         iconAnchor: [12, 25],
         popupAnchor: [0, -25]
       });
 
-      L.geoJSON(checkpointData, {
-        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: checkpointIcon}),
+      L.geoJSON(roadGateData, {
+        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: roadGateIcon}),
       }).addTo(map);
 
       L.geoJSON(busData, {
