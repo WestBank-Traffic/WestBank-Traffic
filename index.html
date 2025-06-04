@@ -92,9 +92,10 @@
       font-size: 17px;
       color: #e65100; /* برتقالي غامق للنص */
       display: flex;
-      justify-content: space-between;
+      justify-content: center; /* الاسم بالمنتصف */
       align-items: center;
       transition: background-color 0.25s ease;
+      user-select: none;
     }
     .popup-destination:hover {
       background-color: #ffb366; /* تظليل برتقالي عند hover */
@@ -248,9 +249,9 @@
 
           if (exDataArray.length > 0) {
             popupContent += '<div class="popup-content-wrapper">';
-            exDataArray.forEach((exData, index) => {
-              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة: ${exData['نهاية الخط - مدينة']}')">`;
-              popupContent += `<b>وجهة ${index + 1}:</b> ${exData["نهاية الخط - مدينة"] || "-"}`;
+            exDataArray.forEach((exData) => {
+              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${exData['اجرة المواصلات بالحافلات العمومي ']}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">`;
+              popupContent += `${exData["نهاية الخط - مدينة"] || "-"}`;
               popupContent += '</div>';
             });
             popupContent += '</div>';
