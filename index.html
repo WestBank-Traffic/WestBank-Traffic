@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
   <style>
     html, body, #map {
       height: 100%;
@@ -256,9 +259,16 @@
         }
       }).addTo(map);
 
-      // إضافة طبقة الـ checkpoint.geojson
+      // إضافة طبقة الـ checkpoint.geojson بلون أحمر
+      var checkpointIcon = L.icon({
+        iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png', // أيقونة حمراء
+        iconSize: [25, 25],
+        iconAnchor: [12, 25],
+        popupAnchor: [0, -25]
+      });
+
       L.geoJSON(checkpointData, {
-        pointToLayer: (feature, latlng) => L.marker(latlng)
+        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: checkpointIcon}),
       }).addTo(map);
 
       L.geoJSON(busData, {
