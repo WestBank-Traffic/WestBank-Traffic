@@ -34,79 +34,27 @@
       text-align: center;
       flex: 2;
     }
-    /* ستايل لوحة اختيار الوجهة */
-    .destination-control {
-      background: white;
-      padding: 8px 12px;
-      border-radius: 5px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-      cursor: pointer;
-      font-size: 16px;
-      user-select: none;
-      position: relative;
-    }
-    .destination-panel {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      transform: none;
-      background: white;
-      padding: 20px 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      z-index: 1100;
-      width: 280px;
-      display: none;
-      font-size: 18px;
-      font-weight: 600;
-      color: #222;
-    }
-    .destination-panel.show {
-      display: block;
-    }
-    .destination-panel label,
-    .destination-panel select {
-      width: 100%;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .destination-panel button {
-      width: 100%;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-    }
-    /* تنسيق مربع الوجهة داخل البوب أب */
+    /* تنسيق مربعات الوجهة داخل البوب أب */
     .popup-destination {
       padding: 8px 15px;
       margin-bottom: 8px;
       border-radius: 15px;
       cursor: pointer;
-      background-color: #ffd8b1; /* برتقالي فاتح */
-      border: 1.5px solid #ff9800; /* برتقالي غامق */
+      background-color: #ffd8b1;
+      border: 1.5px solid #ff9800;
       font-weight: 600;
       font-size: 17px;
-      color: #e65100; /* برتقالي غامق للنص */
+      color: #e65100;
       display: flex;
-      justify-content: center; /* الاسم بالمنتصف */
+      justify-content: center;
       align-items: center;
       transition: background-color 0.25s ease;
       user-select: none;
     }
     .popup-destination:hover {
-      background-color: #ffb366; /* تظليل برتقالي عند hover */
+      background-color: #ffb366;
       color: white;
       border-color: #ef6c00;
-    }
-    /* صندوق البوب أب ليكون مع تمرير لو وجهات كثيرة */
-    .popup-content-wrapper {
-      max-height: 200px;
-      overflow-y: auto;
-      padding-right: 5px; /* عشان scrollbar ما يغطي المحتوى */
     }
   </style>
 </head>
@@ -269,7 +217,24 @@
 
       L.geoJSON(roadGateData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: roadGateIcon}),
+        onEachFeature: function (feature, layer) {
+          var popupContent = `
+            <b>اسم الحاجز:</b> ${feature.properties["اسم الحاجز"] || "-"}<br/>
+            <label for="status-select">اختر الحالة:</label>
+            <select id="status-select">
+              <option value="مفتوح">مفتوح</option>
+              <option value="مغلق">مغلق</option>
+            </select>
+            <button onclick="updateGateStatus('${feature.properties["ID"]}')">تحديث</button>
+          `;
+          layer.bindPopup(popupContent);
+        }
       }).addTo(map);
+
+      // تحديث حالة الحاجز
+      window.updateGateStatus = function(id) {
+        alert('تم تحديث حالة الحاجز: ' + id);
+      };
 
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
