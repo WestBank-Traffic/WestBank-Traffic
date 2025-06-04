@@ -19,70 +19,37 @@
       left: 0;
       right: 0;
       background: white;
-      padding: 5px;
+      padding: 10px;
       border-radius: 5px;
       z-index: 1000;
       display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
-      align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
     }
     .leaflet-control-title {
       font-size: 24px;
       font-weight: bold;
       text-align: center;
-      flex: 2 1 100%;
-      margin-bottom: 8px;
+      flex: 1 1 100%;
+      margin-bottom: 6px;
     }
-    /* ستايل لوحة اختيار الوجهة والمحافظة */
-    .destination-control, .governorate-control {
-      background: white;
-      padding: 8px 12px;
-      border-radius: 5px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-      cursor: pointer;
+    select, button {
+      padding: 7px 12px;
       font-size: 16px;
-      user-select: none;
-      position: relative;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
       min-width: 150px;
     }
-    .destination-panel, .governorate-panel {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      transform: none;
-      background: white;
-      padding: 20px 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      z-index: 1100;
-      width: 280px;
-      display: none;
-      font-size: 18px;
-      font-weight: 600;
-      color: #222;
-    }
-    .destination-panel.show, .governorate-panel.show {
-      display: block;
-    }
-    .destination-panel label, .destination-panel select,
-    .governorate-panel label, .governorate-panel select {
-      width: 100%;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .destination-panel button, .governorate-panel button {
-      width: 100%;
-      padding: 10px;
-      background: #1976d2;
+    button {
+      background-color: #1976d2;
       color: white;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
+    }
+    button:hover {
+      background-color: #155a9c;
     }
     /* تنسيق مربع الوجهة داخل البوب أب */
     .popup-destination {
@@ -90,27 +57,26 @@
       margin-bottom: 8px;
       border-radius: 15px;
       cursor: pointer;
-      background-color: #ffd8b1; /* برتقالي فاتح */
-      border: 1.5px solid #ff9800; /* برتقالي غامق */
+      background-color: #ffd8b1;
+      border: 1.5px solid #ff9800;
       font-weight: 600;
       font-size: 17px;
-      color: #e65100; /* برتقالي غامق للنص */
+      color: #e65100;
       display: flex;
-      justify-content: center; /* الاسم بالمنتصف */
+      justify-content: center;
       align-items: center;
       transition: background-color 0.25s ease;
       user-select: none;
     }
     .popup-destination:hover {
-      background-color: #ffb366; /* تظليل برتقالي عند hover */
+      background-color: #ffb366;
       color: white;
       border-color: #ef6c00;
     }
-    /* صندوق البوب أب ليكون مع تمرير لو وجهات كثيرة */
     .popup-content-wrapper {
       max-height: 200px;
       overflow-y: auto;
-      padding-right: 5px; /* عشان scrollbar ما يغطي المحتوى */
+      padding-right: 5px;
     }
   </style>
 </head>
@@ -118,119 +84,44 @@
   <div id="map"></div>
   <div id="control-box">
     <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+    <select id="governorate-select">
+      <option value="">-- اختر المحافظة --</option>
+    </select>
+    <select id="destination-select" disabled>
+      <option value="">-- اختر الوجهة --</option>
+    </select>
+    <button id="reset-btn">عرض كل المحطات</button>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
     var bounds = [[31.1, 34.9], [32.6, 35.6]];
     var map = L.map('map').fitBounds(bounds);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       maxZoom: 20
     }).addTo(map);
 
-    // إضافة تحكم اختيار الوجهة
-    var DestinationControl = L.Control.extend({
-      options: { position: 'topleft' },
-      onAdd: function(map) {
-        var container = L.DomUtil.create('div', 'destination-control');
-        container.innerHTML = 'اختيار الوجهة ▼';
+    var governorateLayer;
 
-        var panel = L.DomUtil.create('div', 'destination-panel');
-        panel.innerHTML = `
-          <label for="destination-select">اختر وجهتك:</label>
-          <select id="destination-select">
-            <option value="">-- اختر --</option>
-          </select>
-          <button id="go-btn">اذهب</button>
-        `;
-
-        container.appendChild(panel);
-
-        L.DomEvent.disableClickPropagation(container);
-        L.DomEvent.disableScrollPropagation(container);
-
-        L.DomEvent.disableClickPropagation(panel);
-        L.DomEvent.disableScrollPropagation(panel);
-
-        const select = panel.querySelector('#destination-select');
-        L.DomEvent.disableClickPropagation(select);
-        L.DomEvent.disableScrollPropagation(select);
-
-        const btn = panel.querySelector('#go-btn');
-        L.DomEvent.disableClickPropagation(btn);
-        L.DomEvent.disableScrollPropagation(btn);
-
-        container.addEventListener('click', function(e) {
-          if (panel.classList.contains('show')) {
-            panel.classList.remove('show');
-          } else {
-            panel.classList.add('show');
-          }
-        });
-
-        return container;
-      }
+    // أيقونة الحافلة
+    var busIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
     });
-    map.addControl(new DestinationControl());
 
-    // إضافة تحكم اختيار المحافظة
-    var GovernorateControl = L.Control.extend({
-      options: { position: 'topleft' },
-      onAdd: function(map) {
-        var container = L.DomUtil.create('div', 'governorate-control');
-        container.innerHTML = 'اختيار المحافظة ▼';
-
-        var panel = L.DomUtil.create('div', 'governorate-panel');
-        panel.innerHTML = `
-          <label for="governorate-select">اختر المحافظة:</label>
-          <select id="governorate-select">
-            <option value="">-- اختر --</option>
-          </select>
-          <button id="show-governorate-btn">عرض المحافظة</button>
-        `;
-
-        container.appendChild(panel);
-
-        L.DomEvent.disableClickPropagation(container);
-        L.DomEvent.disableScrollPropagation(container);
-
-        L.DomEvent.disableClickPropagation(panel);
-        L.DomEvent.disableScrollPropagation(panel);
-
-        const select = panel.querySelector('#governorate-select');
-        L.DomEvent.disableClickPropagation(select);
-        L.DomEvent.disableScrollPropagation(select);
-
-        const btn = panel.querySelector('#show-governorate-btn');
-        L.DomEvent.disableClickPropagation(btn);
-        L.DomEvent.disableScrollPropagation(btn);
-
-        container.addEventListener('click', function(e) {
-          if (panel.classList.contains('show')) {
-            panel.classList.remove('show');
-          } else {
-            panel.classList.add('show');
-          }
-        });
-
-        return container;
-      }
-    });
-    map.addControl(new GovernorateControl());
-
-    var governorateLayer; // لحفظ طبقة المحافظة المعروضة
-
+    // تحميل البيانات
     Promise.all([
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Governarates.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Governarates.geojson').then(r => r.json())
-    ]).then(([busData, exBusData, governoratesData]) => {
-      // تنظيف أسماء الحقول من الفراغات الزائدة
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
+    ]).then(([governoratesData, busData, exBusData]) => {
+      // تنظيف أسماء الحقول في EX_BusWB
       exBusData.forEach(item => {
         for (const key in item) {
           const trimmedKey = key.trim();
@@ -241,34 +132,15 @@
         }
       });
 
+      // تخزين بيانات المواصلات حسب ID_CODE
       let exBusDictByID = {};
       exBusData.forEach(item => {
         let id = item["ID_CODE"];
-        if (!exBusDictByID[id]) {
-          exBusDictByID[id] = [];
-        }
+        if (!exBusDictByID[id]) exBusDictByID[id] = [];
         exBusDictByID[id].push(item);
       });
 
-      let destinationsSet = new Set();
-      exBusData.forEach(item => {
-        if (item["نهاية الخط - مدينة"]) {
-          destinationsSet.add(item["نهاية الخط - مدينة"]);
-        }
-      });
-
-      let destinationsArray = Array.from(destinationsSet).sort();
-
-      let select = document.getElementById('destination-select');
-      select.innerHTML = '<option value="">-- اختر --</option>';
-      destinationsArray.forEach(dest => {
-        let option = document.createElement('option');
-        option.value = dest;
-        option.textContent = dest;
-        select.appendChild(option);
-      });
-
-      // اضافة اسماء المحافظات من ملف GeoJSON لقائمة اختيار المحافظات
+      // تعبئة قائمة المحافظات
       let governorateSelect = document.getElementById('governorate-select');
       governoratesData.features.forEach(feature => {
         let govName = feature.properties.Name || feature.properties.name || "غير معروف";
@@ -278,81 +150,38 @@
         governorateSelect.appendChild(option);
       });
 
-      var locations = {
-        "رام الله": [31.9074, 35.2034],
-        "نابلس": [32.2211, 35.2544],
-        "الخليل": [31.5326, 35.0998],
-        "أريحا": [31.8719, 35.4486],
-      };
+      // عناصر التحكم بالوجهات
+      let destinationSelect = document.getElementById('destination-select');
 
-      document.getElementById('go-btn').onclick = function(e) {
-        e.stopPropagation();
+      // عرض كل المحطات (طبقة المواقف)
+      let markersLayerGroup;
 
-        var dest = select.value;
-        if (!dest) {
-          alert('يرجى اختيار وجهة أولاً');
-          return;
+      function addBusMarkers(filterGov, filterDest) {
+        if (markersLayerGroup) {
+          map.removeLayer(markersLayerGroup);
         }
-        if (locations[dest]) {
-          map.setView(locations[dest], 13);
-        } else {
-          alert('لا تتوفر إحداثيات لهذه الوجهة.');
-        }
-        select.parentElement.classList.remove('show');
-      };
+        markersLayerGroup = L.layerGroup();
 
-      // عرض حدود المحافظة عند اختيارها
-      document.getElementById('show-governorate-btn').onclick = function(e) {
-        e.stopPropagation();
-
-        var selectedGov = governorateSelect.value;
-        if (!selectedGov) {
-          alert('يرجى اختيار المحافظة أولاً');
-          return;
-        }
-
-        // إزالة الطبقة القديمة إن وجدت
-        if (governorateLayer) {
-          map.removeLayer(governorateLayer);
-        }
-
-        // البحث عن المحافظة المختارة في البيانات ورسمها على الخريطة
-        let selectedFeature = governoratesData.features.find(f => {
-          let name = f.properties.Name || f.properties.name || "";
-          return name === selectedGov;
-        });
-
-        if (selectedFeature) {
-          governorateLayer = L.geoJSON(selectedFeature, {
-            style: {
-              color: '#ff6600',
-              weight: 3,
-              fillOpacity: 0.1
-            }
-          }).addTo(map);
-
-          // تقريب العرض على حدود المحافظة
-          map.fitBounds(governorateLayer.getBounds());
-        } else {
-          alert('لم يتم العثور على حدود المحافظة المختارة.');
-        }
-
-        governorateSelect.parentElement.classList.remove('show');
-      };
-
-      var busIcon = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
-      });
-
-      L.geoJSON(busData, {
-        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
-        onEachFeature: (feature, layer) => {
+        busData.features.forEach(feature => {
           let idCode = feature.properties["ID_CODE"];
           let exDataArray = exBusDictByID[idCode] || [];
 
+          // التحقق من المحافظة
+          if (filterGov) {
+            // المحافظة في بيانات exDataArray (نفس "بداية الخط - محافظة")؟
+            let inGov = exDataArray.some(ex => ex["بداية الخط - محافظة"] === filterGov);
+            if (!inGov) return; // تجاهل إذا ليست ضمن المحافظة
+          }
+
+          // التحقق من الوجهة
+          if (filterDest) {
+            let inDest = exDataArray.some(ex => ex["نهاية الخط - مدينة"] === filterDest);
+            if (!inDest) return; // تجاهل إذا ليست ضمن الوجهة
+          }
+
+          let marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: busIcon});
+          
+          // بناء المحتوى للبوابة
           let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
 
           if (exDataArray.length > 0) {
@@ -371,13 +200,99 @@
             popupContent += `<i>لا توجد بيانات إضافية.</i>`;
           }
 
-          layer.bindPopup(popupContent);
+          marker.bindPopup(popupContent);
+
+          markersLayerGroup.addLayer(marker);
+        });
+
+        markersLayerGroup.addTo(map);
+      }
+
+      // عند اختيار المحافظة: تحديث الوجهات وتصفية المحطات
+      governorateSelect.addEventListener('change', function() {
+        const selectedGov = this.value;
+        destinationSelect.innerHTML = '<option value="">-- اختر الوجهة --</option>';
+
+        if (!selectedGov) {
+          destinationSelect.disabled = true;
+          addBusMarkers(null, null); // عرض كل المحطات
+          if (governorateLayer) {
+            map.removeLayer(governorateLayer);
+            governorateLayer = null;
+          }
+          map.fitBounds(bounds);
+          return;
         }
-      }).addTo(map);
+
+        // فلترة الوجهات حسب المحافظة المختارة
+        let filteredDestSet = new Set();
+        exBusData.forEach(item => {
+          if(item["بداية الخط - محافظة"] === selectedGov && item["نهاية الخط - مدينة"]) {
+            filteredDestSet.add(item["نهاية الخط - مدينة"]);
+          }
+        });
+
+        let filteredDestArray = Array.from(filteredDestSet).sort();
+
+        filteredDestArray.forEach(dest => {
+          let option = document.createElement('option');
+          option.value = dest;
+          option.textContent = dest;
+          destinationSelect.appendChild(option);
+        });
+
+        destinationSelect.disabled = false;
+
+        // عرض حدود المحافظة على الخريطة
+        if (governorateLayer) {
+          map.removeLayer(governorateLayer);
+          governorateLayer = null;
+        }
+        let selectedFeature = governoratesData.features.find(f => {
+          let name = f.properties.Name || f.properties.name || "";
+          return name === selectedGov;
+        });
+        if (selectedFeature) {
+          governorateLayer = L.geoJSON(selectedFeature, {
+            style: { color: '#ff6600', weight: 3, fillOpacity: 0.1 }
+          }).addTo(map);
+          map.fitBounds(governorateLayer.getBounds());
+        }
+
+        addBusMarkers(selectedGov, null);
+      });
+
+      // عند اختيار الوجهة: تصفية المحطات فقط لتلك الوجهة
+      destinationSelect.addEventListener('change', function() {
+        const selectedGov = governorateSelect.value || null;
+        const selectedDest = this.value || null;
+
+        addBusMarkers(selectedGov, selectedDest);
+      });
+
+      // زر إعادة العرض
+      document.getElementById('reset-btn').addEventListener('click', function() {
+        governorateSelect.value = "";
+        destinationSelect.innerHTML = '<option value="">-- اختر الوجهة --</option>';
+        destinationSelect.disabled = true;
+
+        if (governorateLayer) {
+          map.removeLayer(governorateLayer);
+          governorateLayer = null;
+        }
+        addBusMarkers(null, null);
+        map.fitBounds(bounds);
+      });
+
+      // عرض كل المحطات بشكل افتراضي
+      destinationSelect.disabled = true;
+      addBusMarkers(null, null);
+
     }).catch(err => {
-      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
+      console.error('خطأ في تحميل البيانات:', err);
       alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
     });
   </script>
 </body>
 </html>
+
