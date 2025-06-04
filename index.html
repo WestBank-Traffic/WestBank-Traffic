@@ -182,6 +182,17 @@
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
     ]).then(([busData, exBusData]) => {
+      // تنظيف أسماء الحقول من الفراغات الزائدة
+      exBusData.forEach(item => {
+        for (const key in item) {
+          const trimmedKey = key.trim();
+          if (trimmedKey !== key) {
+            item[trimmedKey] = item[key];
+            delete item[key];
+          }
+        }
+      });
+
       let exBusDictByID = {};
       exBusData.forEach(item => {
         let id = item["ID_CODE"];
@@ -245,7 +256,7 @@
           let idCode = feature.properties["ID_CODE"];
           let exDataArray = exBusDictByID[idCode] || [];
 
-          let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/><hr/>`;
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
 
           if (exDataArray.length > 0) {
             popupContent += '<div class="popup-content-wrapper">';
