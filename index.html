@@ -151,7 +151,7 @@
     map.addControl(new DestinationControl());
 
     Promise.all([
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/Bus.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_Bus.json').then(r => r.json())
     ]).then(([busData, exBusData]) => {
       let exBusDictNormalized = {};
@@ -205,7 +205,7 @@
         select.parentElement.classList.remove('show');
       };
 
-      // عرض المواقف على الخريطة
+      // عرض المواقف على الخريطة وربطها مع بيانات EX_Bus.json
       var busIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
