@@ -154,10 +154,13 @@
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
     ]).then(([busData, exBusData]) => {
-      // بناء قاموس باستخدام ID_CODE
       let exBusDictByID = {};
       exBusData.forEach(item => {
-        exBusDictByID[item["ID_CODE"]] = item;
+        let id = item["ID_CODE"];
+        if (!exBusDictByID[id]) {
+          exBusDictByID[id] = [];
+        }
+        exBusDictByID[id].push(item);
       });
 
       // جمع جميع أسماء "نهاية الخط - مدينة" بدون تكرار
@@ -180,7 +183,6 @@
         select.appendChild(option);
       });
 
-      // إحداثيات تقريبية للوجهات (يمكن تعديلها أو إضافة المزيد)
       var locations = {
         "رام الله": [31.9074, 35.2034],
         "نابلس": [32.2211, 35.2544],
@@ -188,7 +190,6 @@
         "أريحا": [31.8719, 35.4486],
       };
 
-      // زر اذهب
       document.getElementById('go-btn').onclick = function(e) {
         e.stopPropagation();
 
@@ -205,7 +206,6 @@
         select.parentElement.classList.remove('show');
       };
 
-      // أيقونة الحافلة
       var busIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
@@ -213,22 +213,25 @@
         popupAnchor: [0, -30]
       });
 
-      // عرض نقاط BUS_WestBank وربطها بالبيانات
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
         onEachFeature: (feature, layer) => {
           let idCode = feature.properties["ID_CODE"];
-          let exData = exBusDictByID[idCode];
+          let exDataArray = exBusDictByID[idCode] || [];
 
-          let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/>`;
+          let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/><hr/>`;
 
-          if (exData) {
-            popupContent += `<b>بداية الخط - محافظة:</b> ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
-            popupContent += `<b>بداية الخط - مدينة:</b> ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
-            popupContent += `<b>نهاية الخط - مدينة:</b> ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
-            popupContent += `<b>أجرة المواصلات:</b> ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
-            popupContent += `<b>حالة الخط:</b> ${exData["حالة الخط"] || "-"}<br/>`;
-            popupContent += `<b>مسار الخط ذهاب و إياب:</b> ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
+          if (exDataArray.length > 0) {
+            exDataArray.forEach((exData, index) => {
+              popupContent += `<b>وجهة ${index + 1}:</b><br/>`;
+              popupContent += `بداية الخط - محافظة: ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
+              popupContent += `بداية الخط - مدينة: ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
+              popupContent += `نهاية الخط - مدينة: ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
+              popupContent += `أجرة المواصلات: ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
+              popupContent += `حالة الخط: ${exData["حالة الخط"] || "-"}<br/>`;
+              popupContent += `مسار الخط ذهاب و إياب: ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
+              popupContent += `<hr/>`;
+            });
           } else {
             popupContent += `<i>لا توجد بيانات إضافية.</i>`;
           }
