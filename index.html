@@ -193,9 +193,6 @@
         }
       });
 
-      // طباعة أسماء الحقول للتأكد (يمكن حذفها بعد التأكد)
-      console.log("أسماء الحقول بعد التنظيف:", Object.keys(exBusData[0]));
-
       let exBusDictByID = {};
       exBusData.forEach(item => {
         let id = item["ID_CODE"];
@@ -264,7 +261,7 @@
           if (exDataArray.length > 0) {
             popupContent += '<div class="popup-content-wrapper">';
             exDataArray.forEach((exData) => {
-              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${exData['أجرة المواصلات بالحافلات العمومي']}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">`;
+              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\ ${exData['أجرة المواصلات بالحافلات العمومي']}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">`;
               popupContent += `${exData["نهاية الخط - مدينة"] || "-"}`;
               popupContent += '</div>';
             });
