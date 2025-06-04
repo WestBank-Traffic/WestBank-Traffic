@@ -80,6 +80,18 @@
       cursor: pointer;
       font-size: 18px;
     }
+    /* تنسيق مربع الوجهة داخل البوب أب */
+    .popup-destination {
+      padding: 5px;
+      margin-bottom: 5px;
+      border: 1px solid #1976d2;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #e3f2fd;
+    }
+    .popup-destination:hover {
+      background-color: #bbdefb;
+    }
   </style>
 </head>
 <body>
@@ -163,7 +175,6 @@
         exBusDictByID[id].push(item);
       });
 
-      // جمع جميع أسماء "نهاية الخط - مدينة" بدون تكرار
       let destinationsSet = new Set();
       exBusData.forEach(item => {
         if (item["نهاية الخط - مدينة"]) {
@@ -173,7 +184,6 @@
 
       let destinationsArray = Array.from(destinationsSet).sort();
 
-      // تعبئة قائمة الوجهات
       let select = document.getElementById('destination-select');
       select.innerHTML = '<option value="">-- اختر --</option>';
       destinationsArray.forEach(dest => {
@@ -222,16 +232,13 @@
           let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/><hr/>`;
 
           if (exDataArray.length > 0) {
+            popupContent += '<div style="max-height:150px; overflow-y:auto;">';
             exDataArray.forEach((exData, index) => {
-              popupContent += `<b>وجهة ${index + 1}:</b><br/>`;
-              popupContent += `بداية الخط - محافظة: ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
-              popupContent += `بداية الخط - مدينة: ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
-              popupContent += `نهاية الخط - مدينة: ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
-              popupContent += `أجرة المواصلات: ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
-              popupContent += `حالة الخط: ${exData["حالة الخط"] || "-"}<br/>`;
-              popupContent += `مسار الخط ذهاب و إياب: ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
-              popupContent += `<hr/>`;
+              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة: ${exData['نهاية الخط - مدينة']}')">`;
+              popupContent += `<b>وجهة ${index + 1}:</b> ${exData["نهاية الخط - مدينة"] || "-"}`;
+              popupContent += '</div>';
             });
+            popupContent += '</div>';
           } else {
             popupContent += `<i>لا توجد بيانات إضافية.</i>`;
           }
