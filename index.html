@@ -252,10 +252,10 @@
         popupAnchor: [0, -30]
       });
 
-      // إضافة طبقة الـ BusLine.geojson
+      // إضافة طبقة الـ BusLine.geojson باللون السكني
       L.geoJSON(busLineData, {
         style: function (feature) {
-          return { color: "#FF5733", weight: 3 };
+          return { color: "#F4E1D2", weight: 3 }; // اللون السكني
         }
       }).addTo(map);
 
