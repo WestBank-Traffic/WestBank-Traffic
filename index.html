@@ -262,9 +262,9 @@
       // إضافة طبقة الـ RoadGates.json
       var roadGateIcon = L.icon({
         iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png', // أيقونة حمراء
-        iconSize: [25, 25],
-        iconAnchor: [12, 25],
-        popupAnchor: [0, -25]
+        iconSize: [15, 15], // تصغير حجم الأيقونة
+        iconAnchor: [7, 15], // تعديل نقطة الارتكاز
+        popupAnchor: [0, -15] // تعديل نقطة الظهور للبروب أب
       });
 
       L.geoJSON(roadGateData, {
