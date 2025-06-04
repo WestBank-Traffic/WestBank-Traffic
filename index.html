@@ -1,239 +1,245 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-/>
-<style>
-  html, body, #map {
-    height: 100%;
-    margin: 0; padding: 0;
-  }
-  #control-box {
-    position: absolute;
-    top: 10px;
-    left: 0;
-    right: 0;
-    background: white;
-    padding: 5px;
-    border-radius: 5px;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    width: calc(100% - 20px);
-    margin: 0 10px;
-    align-items: center;
-  }
-  .leaflet-control-title {
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    flex: 2;
-  }
-  /* ستايل لوحة اختيار الوجهة */
-  .destination-control {
-    background: white;
-    padding: 8px 12px;
-    border-radius: 5px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-    cursor: pointer;
-    font-size: 16px;
-    user-select: none;
-    position: relative;
-  }
-  .destination-panel {
-    position: absolute;
-    top: 40px;
-    left: 0;
-    transform: none;
-    background: white;
-    padding: 20px 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    z-index: 1100;
-    width: 280px;
-    display: none;
-    font-size: 18px;
-    font-weight: 600;
-    color: #222;
-  }
-  .destination-panel.show {
-    display: block;
-  }
-  .destination-panel label,
-  .destination-panel select {
-    width: 100%;
-    display: block;
-    margin-bottom: 8px;
-  }
-  .destination-panel button {
-    width: 100%;
-    padding: 10px;
-    background: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0; padding: 0;
+    }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      width: calc(100% - 20px);
+      margin: 0 10px;
+      align-items: center;
+    }
+    .leaflet-control-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      flex: 2;
+    }
+    /* ستايل لوحة اختيار الوجهة */
+    .destination-control {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      position: relative;
+    }
+    .destination-panel {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      transform: none;
+      background: white;
+      padding: 20px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 1100;
+      width: 280px;
+      display: none;
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+    }
+    .destination-panel.show {
+      display: block;
+    }
+    .destination-panel label,
+    .destination-panel select {
+      width: 100%;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .destination-panel button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-<div id="map"></div>
-<div id="control-box">
-  <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
-</div>
+  <div id="map"></div>
+  <div id="control-box">
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+  </div>
 
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
-<script>
-  function normalizeText(text) {
-    return text ? text.trim().toLowerCase() : "";
-  }
+  <script>
+    function normalizeText(text) {
+      return text ? text.trim().toLowerCase() : "";
+    }
 
-  var bounds = [[31.1, 34.9], [32.6, 35.6]];
-  var map = L.map('map').fitBounds(bounds);
+    var bounds = [[31.1, 34.9], [32.6, 35.6]];
+    var map = L.map('map').fitBounds(bounds);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    maxZoom: 20
-  }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 20
+    }).addTo(map);
 
-  var DestinationControl = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd: function(map) {
-      var container = L.DomUtil.create('div', 'destination-control');
-      container.innerHTML = 'اختيار الوجهة ▼';
+    var DestinationControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function(map) {
+        var container = L.DomUtil.create('div', 'destination-control');
+        container.innerHTML = 'اختيار الوجهة ▼';
 
-      var panel = L.DomUtil.create('div', 'destination-panel');
-      panel.innerHTML = `
-        <label for="destination-select">اختر وجهتك:</label>
-        <select id="destination-select">
-          <option value="">-- اختر --</option>
-        </select>
-        <button id="go-btn">اذهب</button>
-      `;
+        var panel = L.DomUtil.create('div', 'destination-panel');
+        panel.innerHTML = `
+          <label for="destination-select">اختر وجهتك:</label>
+          <select id="destination-select">
+            <option value="">-- اختر --</option>
+          </select>
+          <button id="go-btn">اذهب</button>
+        `;
 
-      container.appendChild(panel);
+        container.appendChild(panel);
 
-      L.DomEvent.disableClickPropagation(container);
-      L.DomEvent.disableScrollPropagation(container);
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
 
-      L.DomEvent.disableClickPropagation(panel);
-      L.DomEvent.disableScrollPropagation(panel);
+        L.DomEvent.disableClickPropagation(panel);
+        L.DomEvent.disableScrollPropagation(panel);
 
-      const select = panel.querySelector('#destination-select');
-      L.DomEvent.disableClickPropagation(select);
-      L.DomEvent.disableScrollPropagation(select);
+        const select = panel.querySelector('#destination-select');
+        L.DomEvent.disableClickPropagation(select);
+        L.DomEvent.disableScrollPropagation(select);
 
-      const btn = panel.querySelector('#go-btn');
-      L.DomEvent.disableClickPropagation(btn);
-      L.DomEvent.disableScrollPropagation(btn);
+        const btn = panel.querySelector('#go-btn');
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.disableScrollPropagation(btn);
 
-      container.addEventListener('click', function(e) {
-        if (panel.classList.contains('show')) {
-          panel.classList.remove('show');
-        } else {
-          panel.classList.add('show');
+        container.addEventListener('click', function(e) {
+          if (panel.classList.contains('show')) {
+            panel.classList.remove('show');
+          } else {
+            panel.classList.add('show');
+          }
+        });
+
+        return container;
+      }
+    });
+
+    map.addControl(new DestinationControl());
+
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
+    ]).then(([busData, exBusData]) => {
+      // بناء قاموس باستخدام ID_CODE
+      let exBusDictByID = {};
+      exBusData.forEach(item => {
+        exBusDictByID[item["ID_CODE"]] = item;
+      });
+
+      // جمع جميع أسماء "نهاية الخط - مدينة" بدون تكرار
+      let destinationsSet = new Set();
+      exBusData.forEach(item => {
+        if (item["نهاية الخط - مدينة"]) {
+          destinationsSet.add(item["نهاية الخط - مدينة"]);
         }
       });
 
-      return container;
-    }
-  });
+      let destinationsArray = Array.from(destinationsSet).sort();
 
-  map.addControl(new DestinationControl());
+      // تعبئة قائمة الوجهات
+      let select = document.getElementById('destination-select');
+      select.innerHTML = '<option value="">-- اختر --</option>';
+      destinationsArray.forEach(dest => {
+        let option = document.createElement('option');
+        option.value = dest;
+        option.textContent = dest;
+        select.appendChild(option);
+      });
 
-  Promise.all([
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
-    fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json())
-  ]).then(([busData, exBusData]) => {
-    let exBusDictNormalized = {};
-    exBusData.forEach(item => {
-      exBusDictNormalized[normalizeText(item["مجمع الخطوط (كراج)"])] = item;
-    });
+      // إحداثيات تقريبية للوجهات (يمكن تعديلها أو إضافة المزيد)
+      var locations = {
+        "رام الله": [31.9074, 35.2034],
+        "نابلس": [32.2211, 35.2544],
+        "الخليل": [31.5326, 35.0998],
+        "أريحا": [31.8719, 35.4486],
+      };
 
-    let destinationsSet = new Set();
-    exBusData.forEach(item => {
-      if (item["نهاية الخط - مدينة"]) {
-        destinationsSet.add(item["نهاية الخط - مدينة"]);
-      }
-    });
+      // زر اذهب
+      document.getElementById('go-btn').onclick = function(e) {
+        e.stopPropagation();
 
-    let destinationsArray = Array.from(destinationsSet).sort();
-
-    let select = document.getElementById('destination-select');
-    select.innerHTML = '<option value="">-- اختر --</option>';
-    destinationsArray.forEach(dest => {
-      let option = document.createElement('option');
-      option.value = dest;
-      option.textContent = dest;
-      select.appendChild(option);
-    });
-
-    var locations = {
-      "رام الله": [31.9074, 35.2034],
-      "نابلس": [32.2211, 35.2544],
-      "الخليل": [31.5326, 35.0998],
-      "أريحا": [31.8719, 35.4486],
-    };
-
-    document.getElementById('go-btn').onclick = function(e) {
-      e.stopPropagation();
-
-      var dest = select.value;
-      if (!dest) {
-        alert('يرجى اختيار وجهة أولاً');
-        return;
-      }
-      if (locations[dest]) {
-        map.setView(locations[dest], 13);
-      } else {
-        alert('لا تتوفر إحداثيات لهذه الوجهة.');
-      }
-      select.parentElement.classList.remove('show');
-    };
-
-    var busIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -30]
-    });
-
-    L.geoJSON(busData, {
-      pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
-      onEachFeature: (feature, layer) => {
-        let stationName = feature.properties["الاسم"];
-        let key = normalizeText(stationName);
-        let exData = exBusDictNormalized[key];
-
-        let popupContent = `<b>اسم المحطة:</b> ${stationName}<br/>`;
-
-        if (exData) {
-          popupContent += `<b>بداية الخط - محافظة:</b> ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
-          popupContent += `<b>بداية الخط - مدينة:</b> ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
-          popupContent += `<b>نهاية الخط - مدينة:</b> ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
-          popupContent += `<b>أجرة المواصلات:</b> ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
-          popupContent += `<b>حالة الخط:</b> ${exData["حالة الخط"] || "-"}<br/>`;
-          popupContent += `<b>مسار الخط ذهاب و إياب:</b> ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
-        } else {
-          popupContent += `<i>لا توجد بيانات إضافية.</i>`;
+        var dest = select.value;
+        if (!dest) {
+          alert('يرجى اختيار وجهة أولاً');
+          return;
         }
+        if (locations[dest]) {
+          map.setView(locations[dest], 13);
+        } else {
+          alert('لا تتوفر إحداثيات لهذه الوجهة.');
+        }
+        select.parentElement.classList.remove('show');
+      };
 
-        layer.bindPopup(popupContent);
-      }
-    }).addTo(map);
-  }).catch(err => {
-    console.error('خطأ في تحميل البيانات أو معالجتها:', err);
-    alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
-  });
-</script>
+      // أيقونة الحافلة
+      var busIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      });
+
+      // عرض نقاط BUS_WestBank وربطها بالبيانات
+      L.geoJSON(busData, {
+        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
+        onEachFeature: (feature, layer) => {
+          let idCode = feature.properties["ID_CODE"];
+          let exData = exBusDictByID[idCode];
+
+          let popupContent = `<b>اسم المحطة:</b> ${feature.properties["الاسم"]}<br/>`;
+
+          if (exData) {
+            popupContent += `<b>بداية الخط - محافظة:</b> ${exData["بداية الخط - محافظة"] || "-"}<br/>`;
+            popupContent += `<b>بداية الخط - مدينة:</b> ${exData["بداية الخط - مدينة"] || "-"}<br/>`;
+            popupContent += `<b>نهاية الخط - مدينة:</b> ${exData["نهاية الخط - مدينة"] || "-"}<br/>`;
+            popupContent += `<b>أجرة المواصلات:</b> ${exData["اجرة المواصلات بالحافلات العمومي "] || "-"}<br/>`;
+            popupContent += `<b>حالة الخط:</b> ${exData["حالة الخط"] || "-"}<br/>`;
+            popupContent += `<b>مسار الخط ذهاب و إياب:</b> ${exData["مسار الخط ذهاب و اياب"] || "-"}<br/>`;
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية.</i>`;
+          }
+
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
+    }).catch(err => {
+      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
+      alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
+    });
+  </script>
 </body>
 </html>
