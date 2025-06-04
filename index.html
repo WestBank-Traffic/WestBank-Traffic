@@ -84,31 +84,28 @@
     .popup-destination {
       padding: 8px 15px;
       margin-bottom: 8px;
-      border-radius: 20px;
+      border-radius: 15px;
       cursor: pointer;
-      background-color: #bee1ff;
-      border: 1.5px solid #1976d2;
+      background-color: #ffd8b1; /* برتقالي فاتح */
+      border: 1.5px solid #ff9800; /* برتقالي غامق */
       font-weight: 600;
       font-size: 17px;
-      color: #0d47a1;
+      color: #e65100; /* برتقالي غامق للنص */
       display: flex;
       justify-content: space-between;
       align-items: center;
       transition: background-color 0.25s ease;
     }
     .popup-destination:hover {
-      background-color: #7aa9f9;
+      background-color: #ffb366; /* تظليل برتقالي عند hover */
       color: white;
-      border-color: #3f51b5;
-    }
-    .popup-destination b {
-      font-weight: 700;
-      margin-left: 10px;
+      border-color: #ef6c00;
     }
     /* صندوق البوب أب ليكون مع تمرير لو وجهات كثيرة */
     .popup-content-wrapper {
       max-height: 200px;
       overflow-y: auto;
+      padding-right: 5px; /* عشان scrollbar ما يغطي المحتوى */
     }
   </style>
 </head>
