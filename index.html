@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     html, body, #map {
       height: 100%;
@@ -179,12 +176,11 @@
     map.addControl(new DestinationControl());
 
     Promise.all([
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BUS_WestBank.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/EX_BusWB.json').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/BusLine.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/RoadGates.json').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/RoadGates.json').then(r => r.json()) // RoadGates.json for Road gates layer
-    ]).then(([busData, exBusData, busLineData, roadGateData]) => {
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BusLine.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/RoadGates.json').then(r => r.json())
+    ]).then(([checkpointData, exBusData, busLineData, roadGateData]) => {
       // تنظيف أسماء الحقول من الفراغات الزائدة
       exBusData.forEach(item => {
         for (const key in item) {
@@ -247,7 +243,7 @@
       };
 
       var busIcon = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
         iconAnchor: [15, 30],
         popupAnchor: [0, -30]
@@ -289,7 +285,7 @@
         alert('تم تحديث حالة الحاجز: ' + id);
       };
 
-      L.geoJSON(busData, {
+      L.geoJSON(checkpointData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
         onEachFeature: (feature, layer) => {
           let idCode = feature.properties["ID_CODE"];
