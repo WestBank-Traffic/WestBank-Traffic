@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
   <style>
     html, body, #map {
       height: 100%;
@@ -31,6 +34,7 @@
       text-align: center;
       flex: 2;
     }
+    /* ستايل لوحة اختيار الوجهة */
     .destination-control {
       background: white;
       padding: 8px 12px;
@@ -76,38 +80,40 @@
       cursor: pointer;
       font-size: 18px;
     }
+    /* تنسيق مربع الوجهة داخل البوب أب */
     .popup-destination {
       padding: 8px 15px;
       margin-bottom: 8px;
       border-radius: 15px;
       cursor: pointer;
-      background-color: #ffd8b1;
-      border: 1.5px solid #ff9800;
+      background-color: #ffd8b1; /* برتقالي فاتح */
+      border: 1.5px solid #ff9800; /* برتقالي غامق */
       font-weight: 600;
       font-size: 17px;
-      color: #e65100;
+      color: #e65100; /* برتقالي غامق للنص */
       display: flex;
-      justify-content: center;
+      justify-content: center; /* الاسم بالمنتصف */
       align-items: center;
       transition: background-color 0.25s ease;
       user-select: none;
     }
     .popup-destination:hover {
-      background-color: #ffb366;
+      background-color: #ffb366; /* تظليل برتقالي عند hover */
       color: white;
       border-color: #ef6c00;
     }
+    /* صندوق البوب أب ليكون مع تمرير لو وجهات كثيرة */
     .popup-content-wrapper {
       max-height: 200px;
       overflow-y: auto;
-      padding-right: 5px;
+      padding-right: 5px; /* عشان scrollbar ما يغطي المحتوى */
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام في الضفة الغربية</div>
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -115,6 +121,10 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
+    function normalizeText(text) {
+      return text ? text.trim().toLowerCase() : "";
+    }
+
     var bounds = [[31.1, 34.9], [32.6, 35.6]];
     var map = L.map('map').fitBounds(bounds);
 
@@ -123,28 +133,58 @@
       maxZoom: 20
     }).addTo(map);
 
-    var busIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -30]
+    var DestinationControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function(map) {
+        var container = L.DomUtil.create('div', 'destination-control');
+        container.innerHTML = 'اختيار الوجهة ▼';
+
+        var panel = L.DomUtil.create('div', 'destination-panel');
+        panel.innerHTML = `
+          <label for="destination-select">اختر وجهتك:</label>
+          <select id="destination-select">
+            <option value="">-- اختر --</option>
+          </select>
+          <button id="go-btn">اذهب</button>
+        `;
+
+        container.appendChild(panel);
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+
+        L.DomEvent.disableClickPropagation(panel);
+        L.DomEvent.disableScrollPropagation(panel);
+
+        const select = panel.querySelector('#destination-select');
+        L.DomEvent.disableClickPropagation(select);
+        L.DomEvent.disableScrollPropagation(select);
+
+        const btn = panel.querySelector('#go-btn');
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.disableScrollPropagation(btn);
+
+        container.addEventListener('click', function(e) {
+          if (panel.classList.contains('show')) {
+            panel.classList.remove('show');
+          } else {
+            panel.classList.add('show');
+          }
+        });
+
+        return container;
+      }
     });
 
-    var roadGateIcon = L.icon({
-      iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png',
-      iconSize: [15, 15],
-      iconAnchor: [7, 15],
-      popupAnchor: [0, -15]
-    });
+    map.addControl(new DestinationControl());
 
-    // هنا نقوم بتحميل البيانات من GitHub
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json())
-    ]).then(([busData, exBusData, roadGateData, checkpointData]) => {
-      var exBusDictByID = {};
+    ]).then(([busData, exBusData, checkpointData]) => {
+
+      let exBusDictByID = {};
       exBusData.forEach(item => {
         let id = item["ID_CODE"];
         if (!exBusDictByID[id]) {
@@ -153,46 +193,114 @@
         exBusDictByID[id].push(item);
       });
 
+      let destinationsSet = new Set();
+      exBusData.forEach(item => {
+        if (item["نهاية الخط - مدينة"]) {
+          destinationsSet.add(item["نهاية الخط - مدينة"]);
+        }
+      });
+
+      let destinationsArray = Array.from(destinationsSet).sort();
+
+      let select = document.getElementById('destination-select');
+      select.innerHTML = '<option value="">-- اختر --</option>';
+      destinationsArray.forEach(dest => {
+        let option = document.createElement('option');
+        option.value = dest;
+        option.textContent = dest;
+        select.appendChild(option);
+      });
+
+      var locations = {
+        "رام الله": [31.9074, 35.2034],
+        "نابلس": [32.2211, 35.2544],
+        "الخليل": [31.5326, 35.0998],
+        "أريحا": [31.8719, 35.4486],
+      };
+
+      document.getElementById('go-btn').onclick = function(e) {
+        e.stopPropagation();
+
+        var dest = select.value;
+        if (!dest) {
+          alert('يرجى اختيار وجهة أولاً');
+          return;
+        }
+        if (locations[dest]) {
+          map.setView(locations[dest], 13);
+        } else {
+          alert('لا تتوفر إحداثيات لهذه الوجهة.');
+        }
+        select.parentElement.classList.remove('show');
+      };
+
+      var busIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      });
+
+      // إضافة طبقة الـ BusLine.geojson
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
         onEachFeature: (feature, layer) => {
           let idCode = feature.properties["ID_CODE"];
           let exDataArray = exBusDictByID[idCode] || [];
-          let popupContent = `<b>اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
+
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
 
           if (exDataArray.length > 0) {
             popupContent += '<div class="popup-content-wrapper">';
             exDataArray.forEach((exData) => {
-              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}')">`;
+              const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== "" 
+                ? exData['اجرة المواصلات بالحافلات العمومي'] 
+                : 'غير متوفرة';
+
+              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">`;
               popupContent += `${exData["نهاية الخط - مدينة"] || "-"}`;
               popupContent += '</div>';
             });
             popupContent += '</div>';
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية.</i>`;
           }
 
           layer.bindPopup(popupContent);
         }
       }).addTo(map);
 
-      // إضافة طبقة الحواجز
-      L.geoJSON(roadGateData, {
+      // إضافة طبقة الـ RoadGates.json
+      var roadGateIcon = L.icon({
+        iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png',
+        iconSize: [15, 15],
+        iconAnchor: [7, 15],
+        popupAnchor: [0, -15]
+      });
+
+      L.geoJSON(checkpointData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: roadGateIcon}),
         onEachFeature: function (feature, layer) {
-          var popupContent = `<b>اسم الحاجز:</b> ${feature.properties["اسم الحاجز"] || "-"}<br/>`;
-          popupContent += `<label for="status-select">اختر الحالة:</label><select id="status-select">
-            <option value="مفتوح">مفتوح</option>
-            <option value="مغلق">مغلق</option></select><button onclick="updateGateStatus('${feature.properties["ID"]}')">تحديث</button>`;
+          var popupContent = `
+            <b>اسم الحاجز:</b> ${feature.properties["اسم الحاجز"] || "-"}<br/>
+            <label for="status-select">اختر الحالة:</label>
+            <select id="status-select">
+              <option value="مفتوح">مفتوح</option>
+              <option value="مغلق">مغلق</option>
+            </select>
+            <button onclick="updateGateStatus('${feature.properties["ID"]}')">تحديث</button>
+          `;
           layer.bindPopup(popupContent);
         }
       }).addTo(map);
 
-      // إضافة نقاط الحواجز
+      // تحديث حالة الحاجز
       window.updateGateStatus = function(id) {
         alert('تم تحديث حالة الحاجز: ' + id);
       };
 
     }).catch(err => {
-      console.error('خطأ في تحميل البيانات:', err);
+      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
       alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
     });
   </script>
