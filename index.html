@@ -56,34 +56,71 @@
     }).addTo(map);
 
     // تحميل البيانات من GitHub
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson')
-      .then(response => response.json())
-      .then(checkpointData => {
-        // تعريف الأيقونة الخاصة بالحواجز
-        var checkpointIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg', // رابط الأيقونة
-          iconSize: [30, 30],
-          iconAnchor: [15, 30],
-          popupAnchor: [0, -30]
-        });
-
-        // إضافة البيانات على الخريطة
-        L.geoJSON(checkpointData, {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: checkpointIcon });
-          },
-          onEachFeature: function (feature, layer) {
-            // استخدام الحقل name_ar من البيانات لعرض الاسم
-            var name_ar = feature.properties["name_ar"] || 'لا يوجد اسم';
-            var popupContent = `<b>اسم الحاجز:</b> ${name_ar}`;
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(map);
-      })
-      .catch(error => {
-        console.error('خطأ في تحميل البيانات:', error);
-        alert('حدث خطأ أثناء تحميل البيانات');
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json())
+    ])
+    .then(([busData, exBusData, checkpointData]) => {
+      var busIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg', // أيقونة الباص
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
       });
+
+      var checkpointIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg', // أيقونة الحاجز
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      });
+
+      // إضافة طبقة الباصات
+      L.geoJSON(busData, {
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng, { icon: busIcon });
+        },
+        onEachFeature: function (feature, layer) {
+          var name = feature.properties["الاسم"] || 'لا يوجد اسم';
+          layer.bindPopup(`<b>اسم المحطة:</b> ${name}`);
+        }
+      }).addTo(map);
+
+      // إضافة طبقة الحواجز
+      L.geoJSON(checkpointData, {
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng, { icon: checkpointIcon });
+        },
+        onEachFeature: function (feature, layer) {
+          var name_ar = feature.properties["name_ar"] || 'لا يوجد اسم';
+          var status = feature.properties["status"] || 'غير محدد';
+          
+          var popupContent = `
+            <b>اسم الحاجز:</b> ${name_ar} <br/>
+            <b>الحالة:</b> ${status}
+            <br/><br/>
+            <button onclick="updateGateStatus('${feature.properties["ID"]}', '${layer}')">تحديث الحالة</button>
+          `;
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
+
+      // تحديث حالة الحاجز
+      window.updateGateStatus = function(id, layer) {
+        const status = prompt("اختر الحالة الجديدة (مفتوح / مغلق):", "مفتوح");
+        if (status && (status === "مفتوح" || status === "مغلق")) {
+          layer.setPopupContent(`<b>اسم الحاجز:</b> ${layer.getPopup().getContent().split('<br>')[0]}<br/><b>الحالة:</b> ${status}`);
+          alert('تم تحديث حالة الحاجز!');
+        } else {
+          alert('الحالة غير صحيحة!');
+        }
+      };
+    })
+    .catch(err => {
+      console.error('خطأ في تحميل البيانات:', err);
+      alert('حدث خطأ أثناء تحميل البيانات');
+    });
   </script>
 </body>
 </html>
