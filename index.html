@@ -12,129 +12,133 @@
     }
     #control-box {
       position: absolute;
-      top: 10px; left: 10px; right: 10px;
-      background: white; padding: 5px;
-      border-radius: 5px; z-index: 1000;
-      display: flex; justify-content: center;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      background: white;
+      padding: 8px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
       align-items: center;
+      font-size: 22px;
+      font-weight: bold;
     }
-    .leaflet-control-title {
-      font-size: 24px; font-weight: bold; text-align: center;
+    .leaflet-popup-content {
+      text-align: right;
     }
-    .popup-destination {
-      padding: 8px 15px; margin-bottom: 8px; border-radius: 15px;
-      cursor: pointer; background-color: #ffd8b1;
-      border: 1.5px solid #ff9800; font-weight: 600;
-      font-size: 17px; color: #e65100; display: flex;
-      justify-content: center; align-items: center;
-      transition: background-color 0.25s ease; user-select: none;
-    }
-    .popup-destination:hover {
-      background-color: #ffb366; color: white; border-color: #ef6c00;
-    }
-    .leaflet-popup-content { text-align: right; }
     .leaflet-popup-content b {
-      font-size: 20px; text-align: center; display: block; margin-bottom: 10px;
+      display: block;
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 10px;
     }
-    select, button {
-      width: 100%; padding: 8px; margin-bottom: 10px;
-      border-radius: 6px; font-size: 16px;
+    select {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 8px;
+      font-size: 15px;
     }
     button {
-      background-color: #1976d2; color: white; border: none;
+      width: 100%;
+      padding: 8px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام والحواجز في الضفة الغربية</div>
-  </div>
+  <div id="control-box">مواقع مراكز النقل العام والحواجز في الضفة الغربية</div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
   <script>
-    var map = L.map('map').fitBounds([
-      [31.2, 34.8], // الجنوب الغربي
-      [32.6, 35.6]  // الشمال الشرقي
-    ]);
+    // إنشاء الخريطة وضبط الزوم
+    var map = L.map('map').setView([31.95, 35.2], 9);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap & CARTO',
+    // إضافة طبقة الخريطة الأساسية
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+      attribution: 'OpenStreetMap & CARTO',
       maxZoom: 20
     }).addTo(map);
 
+    // تعريف الأيقونات
     var busIcon = L.icon({
       iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
       iconSize: [30, 30],
-      iconAnchor: [15, 30], popupAnchor: [0, -30]
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
     });
 
     var checkpointIcons = {
       "مفتوح": L.icon({
         iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
         iconSize: [30, 30],
-        iconAnchor: [15, 30], popupAnchor: [0, -30]
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
       }),
       "مغلق": L.icon({
         iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
         iconSize: [30, 30],
-        iconAnchor: [15, 30], popupAnchor: [0, -30]
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
       })
     };
 
     var checkpointsLayers = {};
 
     Promise.all([
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json())
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(res => res.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json())
     ]).then(([busData, checkpointData]) => {
 
+      // إضافة محطات الحافلات
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
-          var popupContent = `
-            <b>${feature.properties['الاسم']}</b><hr/>
-            <div class="popup-destination">تفاصيل المحطة</div>
-          `;
-          layer.bindPopup(popupContent);
+          layer.bindPopup(`<b>${feature.properties['الاسم']}</b>`);
         }
       }).addTo(map);
 
+      // إضافة الحواجز مع أيقونات الحالة
       checkpointData.features.forEach(feature => {
-        var status = "مفتوح"; 
+        var defaultStatus = "مفتوح"; // الحالة الافتراضية
         var marker = L.marker([
           feature.geometry.coordinates[1],
           feature.geometry.coordinates[0]
-        ], { icon: checkpointIcons[status] });
+        ], { icon: checkpointIcons[defaultStatus] });
 
         checkpointsLayers[feature.properties.ID] = marker;
 
         var popupContent = `
-          <b>${feature.properties['name_ar'] || 'غير محدد'}</b><br/>
+          <b>${feature.properties['name_ar'] || 'غير محدد'}</b>
           <label>اختر الحالة:</label>
-          <select id="status-select-${feature.properties['ID']}">
+          <select id="status-${feature.properties.ID}">
             <option value="مفتوح">مفتوح</option>
             <option value="مغلق">مغلق</option>
           </select>
-          <button onclick="updateGateStatus('${feature.properties['ID']}')">تحديث الحالة</button>
+          <button onclick="updateCheckpoint('${feature.properties.ID}')">تحديث الحالة</button>
         `;
-
         marker.bindPopup(popupContent).addTo(map);
       });
 
-    }).catch(err => console.error('Error:', err));
+    }).catch(err => console.error('حدث خطأ:', err));
 
-    window.updateGateStatus = function(id) {
-      const select = document.getElementById(`status-select-${id}`);
-      const status = select.value;
+    // وظيفة تحديث حالة الحاجز
+    function updateCheckpoint(id) {
+      var selectElement = document.getElementById(`status-${id}`);
+      var newStatus = selectElement.value;
 
-      const marker = checkpointsLayers[id];
-      marker.setIcon(checkpointIcons[status]);
-
-      alert(`تم تحديث حالة الحاجز ${id} إلى: ${status}`);
-    };
+      // تغيير الأيقونة وفقاً للحالة الجديدة
+      checkpointsLayers[id].setIcon(checkpointIcons[newStatus]);
+      alert(`تم تحديث حالة الحاجز إلى: ${newStatus}`);
+    }
   </script>
 </body>
 </html>
