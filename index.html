@@ -52,6 +52,40 @@
       color: white;
       border-color: #ef6c00;
     }
+
+    /* تعديل تنسيق البوب أب ليبدأ من اليمين */
+    .leaflet-popup-content {
+      text-align: right; /* تجعل النص يبدأ من اليمين */
+    }
+
+    /* تعديل تنسيق اسم الحاجز ليكون في المنتصف وبحجم أكبر */
+    .leaflet-popup-content b {
+      font-size: 20px;
+      text-align: center;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* تنسيق الـ select */
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    /* تنسيق الزر */
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
@@ -100,7 +134,7 @@
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
           var popupContent = `
-            <b style="font-size:22px;">اسم المحطة: ${feature.properties['الاسم']}</b><hr/>
+            <b>${feature.properties['الاسم']}</b><hr/>
             <div class="popup-destination" onclick="alert('تفاصيل: ${feature.properties['الاسم']}')">تفاصيل المحطة</div>
           `;
           layer.bindPopup(popupContent);
@@ -112,7 +146,7 @@
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: checkpointIcon }),
         onEachFeature: (feature, layer) => {
           var popupContent = `
-            <b>اسم الحاجز:</b> ${feature.properties['name_ar'] || 'غير محدد'}<br/>
+            <b>${feature.properties['name_ar'] || 'غير محدد'}</b><br/>
             <label for="status-select-${feature.properties['ID']}">اختر الحالة:</label>
             <select id="status-select-${feature.properties['ID']}">
               <option value="مفتوح">مفتوح</option>
