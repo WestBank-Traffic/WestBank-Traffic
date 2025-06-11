@@ -56,26 +56,26 @@
     }).addTo(map);
 
     // تحميل البيانات من GitHub
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson')
+    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson')
       .then(response => response.json())
-      .then(busData => {
-        // تعريف الأيقونة
-        var busIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg', // الرابط المباشر للأيقونة
+      .then(checkpointData => {
+        // تعريف الأيقونة الخاصة بالحواجز
+        var checkpointIcon = L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg', // رابط الأيقونة
           iconSize: [30, 30],
           iconAnchor: [15, 30],
           popupAnchor: [0, -30]
         });
 
         // إضافة البيانات على الخريطة
-        L.geoJSON(busData, {
+        L.geoJSON(checkpointData, {
           pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });
+            return L.marker(latlng, { icon: checkpointIcon });
           },
           onEachFeature: function (feature, layer) {
-            var popupContent = `
-              <b>اسم المحطة:</b> ${feature.properties["الاسم"] || 'غير موجود'}
-            `;
+            // استخدام الحقل name_ar من البيانات لعرض الاسم
+            var name_ar = feature.properties["name_ar"] || 'لا يوجد اسم';
+            var popupContent = `<b>اسم الحاجز:</b> ${name_ar}`;
             layer.bindPopup(popupContent);
           }
         }).addTo(map);
