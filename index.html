@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
   <style>
     html, body, #map {
       height: 100%;
@@ -176,11 +179,11 @@
     map.addControl(new DestinationControl());
 
     Promise.all([
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BusLine.geojson').then(r => r.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/RoadGates.json').then(r => r.json())
-    ]).then(([checkpointData, exBusData, busLineData, roadGateData]) => {
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json())
+    ]).then(([busData, exBusData, roadData, checkpointData]) => {
       // تنظيف أسماء الحقول من الفراغات الزائدة
       exBusData.forEach(item => {
         for (const key in item) {
@@ -243,20 +246,20 @@
       };
 
       var busIcon = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
+        iconUrl: 'https://raw.githubusercontent.com/Rahaf-Yaze/Car-Stations-in-Ramallahv/main/directions_bus_24dp_1F1F1F_FILL0_wght400_GRAD0_opsz24.svg',
         iconSize: [30, 30],
         iconAnchor: [15, 30],
         popupAnchor: [0, -30]
       });
 
       // إضافة طبقة الـ BusLine.geojson باللون السكني
-      L.geoJSON(busLineData, {
+      L.geoJSON(busData, {
         style: function (feature) {
           return { color: "#F4E1D2", weight: 3 }; // اللون السكني
         }
       }).addTo(map);
 
-      // إضافة طبقة الـ RoadGates.json
+      // إضافة طبقة الـ Road.geojson
       var roadGateIcon = L.icon({
         iconUrl: 'https://img.icons8.com/ios-filled/50/ff0000/marker.png', // أيقونة حمراء
         iconSize: [15, 15], // تصغير حجم الأيقونة
@@ -264,7 +267,7 @@
         popupAnchor: [0, -15] // تعديل نقطة الظهور للبروب أب
       });
 
-      L.geoJSON(roadGateData, {
+      L.geoJSON(roadData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: roadGateIcon}),
         onEachFeature: function (feature, layer) {
           var popupContent = `
@@ -285,7 +288,7 @@
         alert('تم تحديث حالة الحاجز: ' + id);
       };
 
-      L.geoJSON(checkpointData, {
+      L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
         onEachFeature: (feature, layer) => {
           let idCode = feature.properties["ID_CODE"];
