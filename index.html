@@ -12,12 +12,9 @@
     }
     #control-box {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+      top: 10px; left: 10px; right: 10px;
       background: white;
-      padding: 8px;
-      border-radius: 5px;
+      padding: 8px; border-radius: 5px;
       z-index: 1000;
       display: flex;
       justify-content: center;
@@ -59,46 +56,35 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
   <script>
-    // إنشاء الخريطة وضبط الزوم
     var map = L.map('map').setView([31.95, 35.2], 9);
 
-    // إضافة طبقة الخريطة الأساسية
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-      attribution: 'OpenStreetMap & CARTO',
-      maxZoom: 20
+      attribution: 'OpenStreetMap & CARTO', maxZoom: 20
     }).addTo(map);
 
-    // تعريف الأيقونات
     var busIcon = L.icon({
       iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -30]
+      iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
     });
 
     var checkpointIcons = {
       "مفتوح": L.icon({
         iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
+        iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
       }),
       "مغلق": L.icon({
         iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
+        iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
       })
     };
 
-    var checkpointsLayers = {};
+    var checkpointMarkers = {};
 
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(res => res.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json())
     ]).then(([busData, checkpointData]) => {
 
-      // إضافة محطات الحافلات
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
@@ -106,39 +92,35 @@
         }
       }).addTo(map);
 
-      // إضافة الحواجز مع أيقونات الحالة
       checkpointData.features.forEach(feature => {
-        var defaultStatus = "مفتوح"; // الحالة الافتراضية
+        var id = feature.properties.ID;
+        var status = "مفتوح";
+
         var marker = L.marker([
           feature.geometry.coordinates[1],
           feature.geometry.coordinates[0]
-        ], { icon: checkpointIcons[defaultStatus] });
+        ], { icon: checkpointIcons[status] }).addTo(map);
 
-        checkpointsLayers[feature.properties.ID] = marker;
+        checkpointMarkers[id] = marker;
 
-        var popupContent = `
+        marker.bindPopup(`
           <b>${feature.properties['name_ar'] || 'غير محدد'}</b>
           <label>اختر الحالة:</label>
-          <select id="status-${feature.properties.ID}">
+          <select id="select-${id}">
             <option value="مفتوح">مفتوح</option>
             <option value="مغلق">مغلق</option>
           </select>
-          <button onclick="updateCheckpoint('${feature.properties.ID}')">تحديث الحالة</button>
-        `;
-        marker.bindPopup(popupContent).addTo(map);
+          <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>
+        `);
       });
 
-    }).catch(err => console.error('حدث خطأ:', err));
+    }).catch(err => console.error('خطأ:', err));
 
-    // وظيفة تحديث حالة الحاجز
-    function updateCheckpoint(id) {
-      var selectElement = document.getElementById(`status-${id}`);
-      var newStatus = selectElement.value;
-
-      // تغيير الأيقونة وفقاً للحالة الجديدة
-      checkpointsLayers[id].setIcon(checkpointIcons[newStatus]);
-      alert(`تم تحديث حالة الحاجز إلى: ${newStatus}`);
-    }
+    window.updateCheckpoint = function(id) {
+      var status = document.getElementById(`select-${id}`).value;
+      checkpointMarkers[id].setIcon(checkpointIcons[status]);
+      alert(`تم تحديث حالة الحاجز إلى: ${status}`);
+    };
   </script>
 </body>
 </html>
