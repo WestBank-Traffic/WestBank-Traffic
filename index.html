@@ -82,16 +82,41 @@
 
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(res => res.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json())
-    ]).then(([busData, checkpointData]) => {
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(res => res.json())
+    ]).then(([busData, checkpointData, extraBusData]) => {
 
+      // تخزين البيانات الإضافية حسب ID_CODE
+      const extraInfoById = {};
+      extraBusData.forEach(item => {
+        extraInfoById[item.ID_CODE] = item;
+      });
+
+      // نقاط مراكز النقل العام
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
-          layer.bindPopup(`<b>${feature.properties['الاسم']}</b>`);
+          const idCode = feature.properties['ID_CODE'];
+          const extra = extraInfoById[idCode];
+
+          let popupContent = `<b>${feature.properties['الاسم']}</b>`;
+          if (extra) {
+            popupContent += `
+              <div style="margin-top:8px;">
+                <b>عدد الخطوط:</b> ${extra.Lines || 'غير متوفر'}<br>
+                <b>المحافظة:</b> ${extra.GOV || 'غير متوفر'}<br>
+                <b>البلدة:</b> ${extra.LOCALITY || 'غير متوفر'}
+              </div>
+            `;
+          } else {
+            popupContent += `<div style="margin-top:8px;">لا توجد معلومات إضافية</div>`;
+          }
+
+          layer.bindPopup(popupContent);
         }
       }).addTo(map);
 
+      // نقاط الحواجز
       checkpointData.features.forEach(feature => {
         var id = feature.properties.ID;
         var status = "مفتوح";
@@ -116,6 +141,7 @@
 
     }).catch(err => console.error('خطأ:', err));
 
+    // دالة تحديث حالة الحاجز
     window.updateCheckpoint = function(id) {
       var status = document.getElementById(`select-${id}`).value;
       checkpointMarkers[id].setIcon(checkpointIcons[status]);
