@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>خريطة مسار من جنين إلى رام الله</title>
+  <title>خريطة مسار من جنين إلى رام الله مع حواجز مغلقة</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
@@ -30,6 +30,27 @@
     var jenin = [32.4519, 35.3020];
     var ramallah = [31.9074, 35.2034];
 
+    // Define closed checkpoint locations along the route
+    var closedCheckpoints = [
+      [32.4000, 35.3500], // Example coordinates for a closed checkpoint
+      [32.4500, 35.2900], // Another example coordinate
+      [32.4200, 35.3100]  // Another example coordinate
+    ];
+
+    // Add closed checkpoints to the map with red icons
+    var closedCheckpointIcon = L.icon({
+      iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Stop_Icon.svg/1200px-Stop_Icon.svg.png',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    closedCheckpoints.forEach(function(coord) {
+      L.marker(coord, {icon: closedCheckpointIcon})
+        .addTo(map)
+        .bindPopup("حاجز مغلق");
+    });
+
     // Create a route between Jenin and Ramallah using Leaflet Routing Machine
     L.Routing.control({
       waypoints: [
@@ -38,6 +59,7 @@
       ],
       routeWhileDragging: true
     }).addTo(map);
+
   </script>
 </body>
 </html>
