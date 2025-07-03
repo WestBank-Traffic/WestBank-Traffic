@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مواقع مواقف الحافلات والحواجز في الضفة الغربية</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
   <style>
     html, body, #map {
       height: 100%;
@@ -12,149 +15,75 @@
     }
     #control-box {
       position: absolute;
-      top: 10px; left: 10px; right: 10px;
+      top: 10px;
+      left: 0;
+      right: 0;
       background: white;
-      padding: 8px; border-radius: 5px;
+      padding: 5px;
+      border-radius: 5px;
       z-index: 1000;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      width: calc(100% - 20px);
+      margin: 0 10px;
       align-items: center;
-      font-size: 22px;
+    }
+    .leaflet-control-title {
+      font-size: 24px;
       font-weight: bold;
-    }
-    .leaflet-popup-content {
-      text-align: right;
-    }
-    .leaflet-popup-content b {
-      display: block;
       text-align: center;
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-    select {
-      width: 100%;
-      padding: 5px;
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-    button {
-      width: 100%;
-      padding: 8px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
+      flex: 2;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="control-box">مواقع مراكز النقل العام والحواجز في الضفة الغربية</div>
+  <div id="control-box">
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
-    var map = L.map('map').setView([31.95, 35.2], 9);
+    var bounds = [[31.1, 34.9], [32.6, 35.6]];
+    var map = L.map('map').fitBounds(bounds);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-      attribution: 'OpenStreetMap & CARTO', maxZoom: 20
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 20
     }).addTo(map);
 
-    var busIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
-      iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
-    });
+    // تحميل البيانات من GitHub
+    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson')
+      .then(response => response.json())
+      .then(busData => {
+        // تعريف الأيقونة
+        var busIcon = L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg', // الرابط المباشر للأيقونة
+          iconSize: [30, 30],
+          iconAnchor: [15, 30],
+          popupAnchor: [0, -30]
+        });
 
-    var checkpointIcons = {
-      "مفتوح": L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
-        iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
-      }),
-      "مغلق": L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
-        iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
-      })
-    };
-
-    var checkpointMarkers = {};
-    var extraInfoById = {};  // هنا سنخزن بيانات EX_BusWB
-
-    // تحميل بيانات الحافلات و الحواجز
-    Promise.all([
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(res => res.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json()),
-      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(res => res.json())
-    ]).then(([busData, checkpointData, extraBusData]) => {
-
-      // تخزين البيانات الإضافية في extraInfoById حسب ID_CODE
-      extraBusData.forEach(item => {
-        const id = (item.ID_CODE || '').toString().trim();  // تأكد من تنسيق الـ ID_CODE
-        extraInfoById[id] = item;  // ربط البيانات باستخدام الـ ID_CODE
-      });
-
-      // نقاط مراكز النقل العام
-      L.geoJSON(busData, {
-        pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
-        onEachFeature: (feature, layer) => {
-          const idCode = (feature.properties['ID_CODE'] || '').toString().trim();
-          const extra = extraInfoById[idCode]; // الحصول على البيانات الإضافية باستخدام ID_CODE
-
-          let popupContent = `<b>${feature.properties['الاسم']}</b>`;
-          if (extra) {
-            // التحقق من البيانات قبل عرضها
-            const lines = extra.Lines ? extra.Lines : 'غير متوفر';
-            const gov = extra.GOV ? extra.GOV : 'غير متوفر';
-            const locality = extra.LOCALITY ? extra.LOCALITY : 'غير متوفر';
-            const fee = extra['أجرة الخط'] ? extra['أجرة الخط'] : 'غير متوفر';
-            const lineType = extra['نوع الخط'] ? extra['نوع الخط'] : 'غير متوفر';
-
-            popupContent += `
-              <div style="margin-top:8px;">
-                <b>عدد الخطوط:</b> ${lines}<br>
-                <b>المحافظة:</b> ${gov}<br>
-                <b>البلدة:</b> ${locality}<br>
-                <b>الأجرة:</b> ${fee}<br>
-                <b>نوع الخط:</b> ${lineType}
-              </div>
+        // إضافة البيانات على الخريطة
+        L.geoJSON(busData, {
+          pointToLayer: function (feature, latlng) {
+            return L.marker(latlng, { icon: busIcon });
+          },
+          onEachFeature: function (feature, layer) {
+            var popupContent = `
+              <b>اسم المحطة:</b> ${feature.properties["الاسم"] || 'غير موجود'}
             `;
-          } else {
-            popupContent += `<div style="margin-top:8px;">لا توجد معلومات إضافية</div>`;
+            layer.bindPopup(popupContent);
           }
-
-          layer.bindPopup(popupContent);  // عرض الـ Popup مع البيانات
-        }
-      }).addTo(map);
-
-      // نقاط الحواجز
-      checkpointData.features.forEach(feature => {
-        var id = feature.properties.ID;
-        var status = "مفتوح";
-
-        var marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], { icon: checkpointIcons[status] }).addTo(map);
-
-        checkpointMarkers[id] = marker;
-
-        marker.bindPopup(`
-          <b>${feature.properties['name_ar'] || 'غير محدد'}</b>
-          <label>اختر الحالة:</label>
-          <select id="select-${id}">
-            <option value="مفتوح">مفتوح</option>
-            <option value="مغلق">مغلق</option>
-          </select>
-          <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>
-        `);
+        }).addTo(map);
+      })
+      .catch(error => {
+        console.error('خطأ في تحميل البيانات:', error);
+        alert('حدث خطأ أثناء تحميل البيانات');
       });
-
-    }).catch(err => console.error('خطأ في تحميل البيانات:', err));
-
-    // دالة تحديث حالة الحاجز
-    window.updateCheckpoint = function(id) {
-      var status = document.getElementById(`select-${id}`).value;
-      checkpointMarkers[id].setIcon(checkpointIcons[status]);
-      alert(`تم تحديث حالة الحاجز إلى: ${status}`);
-    };
   </script>
 </body>
 </html>
