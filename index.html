@@ -31,58 +31,57 @@
       text-align: center;
       flex: 2;
     }
-    .popup-destination {
-      padding: 8px 15px;
-      margin-bottom: 8px;
-      border-radius: 15px;
+    .destination-control {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.65);
       cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      position: relative;
+    }
+    .destination-panel {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      transform: none;
+      background: white;
+      padding: 20px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 1100;
+      width: 280px;
+      display: none;
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+    }
+    .destination-panel.show {
+      display: block;
+    }
+    .destination-button {
       background-color: #ffd8b1; 
       border: 1.5px solid #ff9800; 
       font-weight: 600;
       font-size: 17px;
       color: #e65100; 
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 15px;
+      cursor: pointer;
       transition: background-color 0.25s ease;
-      user-select: none;
     }
-    .popup-destination:hover {
+    .destination-button:hover {
       background-color: #ffb366;
       color: white;
       border-color: #ef6c00;
     }
-    .leaflet-popup-content {
-      text-align: right;
-    }
-    select {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-    }
-    .location-icon {
-      background-color: #ff9800;
-      border-radius: 50%;
-      padding: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 20px;
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      z-index: 1001;
+
+    .destination-button:focus {
+      outline: none;
     }
   </style>
 </head>
@@ -92,9 +91,9 @@
     <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
   </div>
 
-  <!-- زر تحديد الموقع -->
-  <div id="location-btn" class="location-icon">
-    📍
+  <!-- زر تحديد الوجهة -->
+  <div id="destination-btn" class="destination-control">
+    اختيار الوجهة
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -116,27 +115,15 @@
       popupAnchor: [0, -30]
     });
 
+    var locations = {
+      "رام الله": [31.9074, 35.2034],
+      "نابلس": [32.2211, 35.2544],
+      "الخليل": [31.5326, 35.0998],
+      "أريحا": [31.8719, 35.4486],
+    };
+
     var userLocationMarker = null;
     var userCoordinates = null;
-    
-    // تحديد موقع المستخدم عندما يضغط على الأيقونة
-    document.getElementById('location-btn').addEventListener('click', function() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          userCoordinates = [position.coords.latitude, position.coords.longitude];
-
-          if (userLocationMarker) {
-            userLocationMarker.setLatLng(userCoordinates);
-          } else {
-            userLocationMarker = L.marker(userCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
-          }
-
-          map.setView(userCoordinates, 13);
-        });
-      } else {
-        alert("لم يتمكن المتصفح من الحصول على موقعك.");
-      }
-    });
 
     // جلب بيانات الحافلات
     Promise.all([
@@ -167,7 +154,7 @@
                 ? exData['اجرة المواصلات بالحافلات العمومي'] 
                 : 'غير متوفرة';
 
-              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">` +
+              popupContent += `<div class="destination-button" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">` +
                 `${exData["نهاية الخط - مدينة"] || "-"} ` +
                 `</div>`;
             });
@@ -182,6 +169,17 @@
     }).catch(err => {
       console.error('خطأ في تحميل البيانات أو معالجتها:', err);
       alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
+    });
+
+    // تحديد الوجهة عند الضغط على زر اختيار الوجهة
+    document.getElementById('destination-btn').addEventListener('click', function() {
+      var destination = prompt("أدخل اسم الوجهة (مثال: رام الله، نابلس):");
+      if (destination && locations[destination]) {
+        map.setView(locations[destination], 13); // الانتقال إلى الموقع
+        alert("تم التوجيه إلى: " + destination);
+      } else {
+        alert("الوجهة غير موجودة أو غير صحيحة.");
+      }
     });
   </script>
 </body>
