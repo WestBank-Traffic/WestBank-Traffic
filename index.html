@@ -32,7 +32,7 @@
       flex: 2;
     }
 
-    /* تنسيق زر اختيار الوجهة */
+    /* تحسين تنسيق قائمة الوجهات */
     .destination-control {
       background: white;
       padding: 8px 12px;
@@ -41,12 +41,9 @@
       cursor: pointer;
       font-size: 16px;
       user-select: none;
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      z-index: 1001;
+      position: relative;
+      margin-bottom: 10px;
     }
-
     .destination-panel {
       position: absolute;
       top: 40px;
@@ -63,5 +60,105 @@
       font-weight: 600;
       color: #222;
     }
+    .destination-panel.show {
+      display: block;
+    }
 
-    .destination-p
+    .destination-button {
+      background-color: #ffd8b1; 
+      border: 1.5px solid #ff9800;
+      font-weight: 600;
+      font-size: 17px;
+      color: #e65100;
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+    }
+
+    .destination-button:hover {
+      background-color: #ffb366;
+      color: white;
+      border-color: #ef6c00;
+    }
+
+    .destination-button:focus {
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="control-box">
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+    var map = L.map('map').setView([31.5, 35.2], 10); // Adjusted to central point of the West Bank
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 20
+    }).addTo(map);
+
+    var busIcon = L.icon({
+      iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Bus_icon.svg',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json())
+    ]).then(([busData, exBusData]) => {
+      let exBusDictByID = {};
+      exBusData.forEach(item => {
+        let id = item["ID_CODE"];
+        if (!exBusDictByID[id]) {
+          exBusDictByID[id] = [];
+        }
+        exBusDictByID[id].push(item);
+      });
+
+      L.geoJSON(busData, {
+        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
+        onEachFeature: (feature, layer) => {
+          let idCode = feature.properties["ID_CODE"];
+          let exDataArray = exBusDictByID[idCode] || [];
+
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
+
+          if (exDataArray.length > 0) {
+            popupContent += '<div>';
+            exDataArray.forEach((exData) => {
+              const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== "" 
+                ? exData['اجرة المواصلات بالحافلات العمومي'] 
+                : 'غير متوفرة';
+
+              popupContent += `<div class="destination-button" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">` +
+                `${exData["نهاية الخط - مدينة"] || "-"} ` +
+                `</div>`;
+            });
+            popupContent += '</div>';
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية.</i>`;
+          }
+
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
+    }).catch(err => {
+      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
+      alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
+    });
+  </script>
+</body>
+</html>
