@@ -86,17 +86,18 @@
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(res => res.json())
     ]).then(([busData, checkpointData, extraBusData]) => {
 
-      // تخزين البيانات الإضافية حسب ID_CODE
+      // تخزين البيانات الإضافية حسب ID_CODE بعد تطبيعها
       const extraInfoById = {};
       extraBusData.forEach(item => {
-        extraInfoById[item.ID_CODE] = item;
+        const id = (item.ID_CODE || '').toString().trim();
+        extraInfoById[id] = item;
       });
 
       // نقاط مراكز النقل العام
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
-          const idCode = feature.properties['ID_CODE'];
+          const idCode = (feature.properties['ID_CODE'] || '').toString().trim();
           const extra = extraInfoById[idCode];
 
           let popupContent = `<b>${feature.properties['الاسم']}</b>`;
