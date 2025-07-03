@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-  />
+  <title>مواقع مواقف الحافلات والحواجز في الضفة الغربية</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     html, body, #map {
       height: 100%;
@@ -15,75 +12,129 @@
     }
     #control-box {
       position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
+      top: 10px; left: 10px; right: 10px;
+      background: white; padding: 5px;
+      border-radius: 5px; z-index: 1000;
+      display: flex; justify-content: center;
       align-items: center;
     }
     .leaflet-control-title {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      flex: 2;
+      font-size: 24px; font-weight: bold; text-align: center;
+    }
+    .popup-destination {
+      padding: 8px 15px; margin-bottom: 8px; border-radius: 15px;
+      cursor: pointer; background-color: #ffd8b1;
+      border: 1.5px solid #ff9800; font-weight: 600;
+      font-size: 17px; color: #e65100; display: flex;
+      justify-content: center; align-items: center;
+      transition: background-color 0.25s ease; user-select: none;
+    }
+    .popup-destination:hover {
+      background-color: #ffb366; color: white; border-color: #ef6c00;
+    }
+    .leaflet-popup-content { text-align: right; }
+    .leaflet-popup-content b {
+      font-size: 20px; text-align: center; display: block; margin-bottom: 10px;
+    }
+    select, button {
+      width: 100%; padding: 8px; margin-bottom: 10px;
+      border-radius: 6px; font-size: 16px;
+    }
+    button {
+      background-color: #1976d2; color: white; border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+    <div class="leaflet-control-title">مواقع مراكز النقل العام والحواجز في الضفة الغربية</div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
-    var bounds = [[31.1, 34.9], [32.6, 35.6]];
-    var map = L.map('map').fitBounds(bounds);
+    var map = L.map('map').fitBounds([
+      [31.2, 34.8], // الجنوب الغربي
+      [32.6, 35.6]  // الشمال الشرقي
+    ]);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      attribution: '&copy; OpenStreetMap & CARTO',
       maxZoom: 20
     }).addTo(map);
 
-    // تحميل البيانات من GitHub
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson')
-      .then(response => response.json())
-      .then(busData => {
-        // تعريف الأيقونة
-        var busIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg', // الرابط المباشر للأيقونة
-          iconSize: [30, 30],
-          iconAnchor: [15, 30],
-          popupAnchor: [0, -30]
-        });
+    var busIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30], popupAnchor: [0, -30]
+    });
 
-        // إضافة البيانات على الخريطة
-        L.geoJSON(busData, {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: busIcon });
-          },
-          onEachFeature: function (feature, layer) {
-            var popupContent = `
-              <b>اسم المحطة:</b> ${feature.properties["الاسم"] || 'غير موجود'}
-            `;
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(map);
+    var checkpointIcons = {
+      "مفتوح": L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30], popupAnchor: [0, -30]
+      }),
+      "مغلق": L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30], popupAnchor: [0, -30]
       })
-      .catch(error => {
-        console.error('خطأ في تحميل البيانات:', error);
-        alert('حدث خطأ أثناء تحميل البيانات');
+    };
+
+    var checkpointsLayers = {};
+
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json())
+    ]).then(([busData, checkpointData]) => {
+
+      L.geoJSON(busData, {
+        pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
+        onEachFeature: (feature, layer) => {
+          var popupContent = `
+            <b>${feature.properties['الاسم']}</b><hr/>
+            <div class="popup-destination">تفاصيل المحطة</div>
+          `;
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
+
+      checkpointData.features.forEach(feature => {
+        var status = "مفتوح"; 
+        var marker = L.marker([
+          feature.geometry.coordinates[1],
+          feature.geometry.coordinates[0]
+        ], { icon: checkpointIcons[status] });
+
+        checkpointsLayers[feature.properties.ID] = marker;
+
+        var popupContent = `
+          <b>${feature.properties['name_ar'] || 'غير محدد'}</b><br/>
+          <label>اختر الحالة:</label>
+          <select id="status-select-${feature.properties['ID']}">
+            <option value="مفتوح">مفتوح</option>
+            <option value="مغلق">مغلق</option>
+          </select>
+          <button onclick="updateGateStatus('${feature.properties['ID']}')">تحديث الحالة</button>
+        `;
+
+        marker.bindPopup(popupContent).addTo(map);
       });
+
+    }).catch(err => console.error('Error:', err));
+
+    window.updateGateStatus = function(id) {
+      const select = document.getElementById(`status-select-${id}`);
+      const status = select.value;
+
+      const marker = checkpointsLayers[id];
+      marker.setIcon(checkpointIcons[status]);
+
+      alert(`تم تحديث حالة الحاجز ${id} إلى: ${status}`);
+    };
   </script>
 </body>
 </html>
