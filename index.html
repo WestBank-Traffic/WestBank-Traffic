@@ -90,8 +90,8 @@
 
       // تخزين البيانات الإضافية في extraInfoById حسب ID_CODE
       extraBusData.forEach(item => {
-        const id = (item.ID_CODE || '').toString().trim();
-        extraInfoById[id] = item;
+        const id = (item.ID_CODE || '').toString().trim();  // تأكد من تنسيق الـ ID_CODE
+        extraInfoById[id] = item;  // ربط البيانات باستخدام الـ ID_CODE
       });
 
       // نقاط مراكز النقل العام
@@ -99,22 +99,31 @@
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
           const idCode = (feature.properties['ID_CODE'] || '').toString().trim();
-          const extra = extraInfoById[idCode]; // الحصول على البيانات الإضافية
+          const extra = extraInfoById[idCode]; // الحصول على البيانات الإضافية باستخدام ID_CODE
 
           let popupContent = `<b>${feature.properties['الاسم']}</b>`;
           if (extra) {
+            // التحقق من البيانات قبل عرضها
+            const lines = extra.Lines ? extra.Lines : 'غير متوفر';
+            const gov = extra.GOV ? extra.GOV : 'غير متوفر';
+            const locality = extra.LOCALITY ? extra.LOCALITY : 'غير متوفر';
+            const fee = extra['أجرة الخط'] ? extra['أجرة الخط'] : 'غير متوفر';
+            const lineType = extra['نوع الخط'] ? extra['نوع الخط'] : 'غير متوفر';
+
             popupContent += `
               <div style="margin-top:8px;">
-                <b>عدد الخطوط:</b> ${extra.Lines || 'غير متوفر'}<br>
-                <b>المحافظة:</b> ${extra.GOV || 'غير متوفر'}<br>
-                <b>البلدة:</b> ${extra.LOCALITY || 'غير متوفر'}
+                <b>عدد الخطوط:</b> ${lines}<br>
+                <b>المحافظة:</b> ${gov}<br>
+                <b>البلدة:</b> ${locality}<br>
+                <b>الأجرة:</b> ${fee}<br>
+                <b>نوع الخط:</b> ${lineType}
               </div>
             `;
           } else {
             popupContent += `<div style="margin-top:8px;">لا توجد معلومات إضافية</div>`;
           }
 
-          layer.bindPopup(popupContent);
+          layer.bindPopup(popupContent);  // عرض الـ Popup مع البيانات
         }
       }).addTo(map);
 
@@ -138,7 +147,7 @@
         `);
       });
 
-    }).catch(err => console.error('خطأ:', err));
+    }).catch(err => console.error('خطأ في تحميل البيانات:', err));
 
     // دالة تحديث حالة الحاجز
     window.updateCheckpoint = function(id) {
