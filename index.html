@@ -3,24 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>خريطة مسار من جنين إلى رام الله مع الحواجز المغلقة</title>
+  <title>خريطة مواقف الحافلات مع بيانات إضافية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
     html, body, #map {
       height: 100%;
       margin: 0; padding: 0;
     }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      width: calc(100% - 20px);
+      margin: 0 10px;
+      align-items: center;
+    }
+    .leaflet-control-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      flex: 2;
+    }
+    .popup-destination {
+      padding: 8px 15px;
+      margin-bottom: 8px;
+      border-radius: 15px;
+      cursor: pointer;
+      background-color: #ffd8b1;
+      border: 1.5px solid #ff9800;
+      font-weight: 600;
+      font-size: 17px;
+      color: #e65100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.25s ease;
+      user-select: none;
+    }
+    .popup-destination:hover {
+      background-color: #ffb366;
+      color: white;
+      border-color: #ef6c00;
+    }
+    .leaflet-popup-content {
+      text-align: right;
+    }
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .location-icon {
+      background-color: #ff9800;
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      z-index: 1001;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="control-box">
+    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+  </div>
+
+  <!-- زر تحديد الموقع -->
+  <div id="location-btn" class="location-icon">
+    📍
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
-    var map = L.map('map').setView([31.9, 35.2], 9); // View centered on the West Bank
+    var map = L.map('map').setView([31.5, 35.2], 10); // Adjusted to central point of the West Bank
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -51,20 +133,6 @@
     var userLocationMarker = null;
     var userCoordinates = null;
 
-    // حواجز مغلقة (إحداثيات وهمية)
-    var closedCheckpoints = [
-      { coords: [32.4000, 35.3500], name: "المدخل الشمالي لمدينة البيرة", status: "مغلق" },
-      { coords: [32.4200, 35.3200], name: "طريق حزما", status: "مغلق" },
-      { coords: [32.4100, 35.2900], name: "العيزرية", status: "مغلق" }
-    ];
-
-    // إضافة الحواجز المغلقة إلى الخريطة
-    closedCheckpoints.forEach(function(checkpoint) {
-      L.marker(checkpoint.coords, {icon: closedCheckpointIcon})
-        .addTo(map)
-        .bindPopup(`<b>${checkpoint.name}</b><br/>حالة الحاجز: مغلق`);
-    });
-
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -83,39 +151,114 @@
       }
     });
 
-    // إحداثيات جنين ورام الله
-    var jenin = [32.4519, 35.3020];
-    var ramallah = [31.9074, 35.2034];
+    // بيانات الحواجز مع الحالة بناءً على الأسماء
+    var checkpointStatus = {
+      "المدخل الشمالي لمدينة البيرة": "مغلق",
+      "بوابة عطارة": "مفتوح",
+      "مدخل روابي": "مفتوح",
+      "عين سينيا": "مفتوح",
+      "الجلزون": "مفتوح",
+      "عيون الحرامية": "مفتوح",
+      "بوابة سنجل": "مفتوح",
+      "بوابة النبي صالح": "مفتوح",
+      "بوابة عابود": "مفتوح",
+      "بوابة ترمسعيا": "مفتوح",
+      "سلواد يبرود": "مفتوح",
+      "مداخل ومخارج أريحا": "مفتوح",
+      "كفر عقب": "مفتوح",
+      "قلنديا": "مفتوح",
+      "جبع": "مفتوح",
+      "طريق حزما": "مغلق",
+      "دوار عناتا": "مفتوح",
+      "زعيم": "مفتوح",
+      "العيزرية": "مغلق"
+    };
 
-    // تحديد المسار بين جنين ورام الله
-    var routeControl = L.Routing.control({
-      waypoints: [
-        L.latLng(jenin),
-        L.latLng(ramallah)
-      ],
-      routeWhileDragging: true
-    }).addTo(map);
-
-    // دالة لإعادة حساب المسار إذا كان هناك حاجز مغلق
-    function reRouteIfBlocked() {
-      var newWaypoints = [jenin, ramallah]; // مسار افتراضي
-
-      // إذا كان الحاجز مغلقًا على الطريق، سيعاد الحساب
-      closedCheckpoints.forEach(function(checkpoint) {
-        var latLngCheckpoint = L.latLng(checkpoint.coords);
-        // التحقق مما إذا كانت الحواجز مغلقة
-        if (routeControl.getRoute().getLatLngs().some(function(latLng) {
-          return latLng.equals(latLngCheckpoint);
-        })) {
-          alert(`${checkpoint.name} مغلق، سيتم تغيير المسار.`);
-          newWaypoints = [jenin, ramallah]; // تحديث المسار إذا كانت الحواجز مغلقة
-          routeControl.setWaypoints(newWaypoints); // تغيير المسار
+    // جلب بيانات الحافلات و الحواجز
+    Promise.all([ 
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson').then(r => r.json())
+    ]).then(([busData, exBusData, checkpointData, roadData]) => {
+      let exBusDictByID = {};
+      exBusData.forEach(item => {
+        let id = item["ID_CODE"];
+        if (!exBusDictByID[id]) {
+          exBusDictByID[id] = [];
         }
+        exBusDictByID[id].push(item);
       });
-    }
 
-    // التحقق من الحواجز المغلقة عند تحميل الخريطة
-    reRouteIfBlocked();
+      // عرض بيانات الحافلات
+      L.geoJSON(busData, {
+        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: busIcon}),
+        onEachFeature: (feature, layer) => {
+          let idCode = feature.properties["ID_CODE"];
+          let exDataArray = exBusDictByID[idCode] || [];
+
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
+
+          if (exDataArray.length > 0) {
+            popupContent += '<div>';
+            exDataArray.forEach((exData) => {
+              const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== "" 
+                ? exData['اجرة المواصلات بالحافلات العمومي'] 
+                : 'غير متوفرة';
+
+              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">` +
+                `${exData["نهاية الخط - مدينة"] || "-"} ` +
+                `</div>`;
+            });
+            popupContent += '</div>';
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية.</i>`;
+          }
+
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
+
+      // عرض بيانات الحواجز مع الحالة بناءً على الأسماء
+      checkpointData.features.forEach(feature => {
+        var id = feature.properties.ID;
+        var name = feature.properties.name_ar;
+
+        var status = checkpointStatus[name] || "غير معروف";
+        var icon = status === "مفتوح" ? openCheckpointIcon : closedCheckpointIcon;
+
+        L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
+          .addTo(map)
+          .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
+            <label>اختر الحالة:</label>
+            <select id="select-${id}">
+              <option value="مفتوح" ${status === "مفتوح" ? "selected" : ""}>مفتوح</option>
+              <option value="مغلق" ${status === "مغلق" ? "selected" : ""}>مغلق</option>
+            </select>
+            <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
+      });
+
+      // عرض خطوط الطرق
+      L.geoJSON(roadData, {
+        style: function() {
+          return {
+            color: '#D3D3D3', // اللون السكني (الرمادي الفاتح)
+            weight: 2,  // سُمك الخط
+            opacity: 0.7, // الشفافية
+          };
+        }
+      }).addTo(map);
+
+    }).catch(err => {
+      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
+      alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
+    });
+
+    // تحديث حالة الحاجز
+    window.updateCheckpoint = function(id) {
+      var status = document.getElementById(`select-${id}`).value;
+      alert(`تم تحديث حالة الحاجز ${id} إلى: ${status}`);
+    };
   </script>
 </body>
 </html>
