@@ -151,6 +151,29 @@
       }
     });
 
+    // بيانات حالة الحواجز
+    var checkpointStatus = {
+      "المدخل الشمالي لمدينة البيرة": "مغلق",
+      "بوابة عطارة": "مفتوح",
+      "مدخل روابي": "مفتوح",
+      "عين سينيا": "مفتوح",
+      "الجلزون": "مفتوح",
+      "عيون الحرامية": "مفتوح",
+      "بوابة سنجل": "مفتوح",
+      "بوابة النبي صالح": "مفتوح",
+      "بوابة عابود": "مفتوح",
+      "بوابة ترمسعيا": "مفتوح",
+      "سلواد يبرود": "مفتوح",
+      "مداخل ومخارج أريحا": "مفتوح",
+      "كفر عقب": "مفتوح",
+      "قلنديا": "مفتوح",
+      "جبع": "مفتوح",
+      "طريق حزما": "مغلق",
+      "دوار عناتا": "مفتوح",
+      "زعيم": "مفتوح",
+      "العيزرية": "مغلق"
+    };
+
     // جلب بيانات الحافلات و الحواجز
     Promise.all([ 
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
@@ -195,19 +218,21 @@
         }
       }).addTo(map);
 
-      // عرض بيانات الحواجز
+      // عرض بيانات الحواجز مع الحالة بناءً على الأسماء
       checkpointData.features.forEach(feature => {
         var id = feature.properties.ID;
-        var status = feature.properties['status'] === 'مفتوح' ? 'مفتوح' : 'مغلق';
-        var icon = status === 'مفتوح' ? openCheckpointIcon : closedCheckpointIcon;
+        var name = feature.properties.name_ar;
+
+        var status = checkpointStatus[name] || "غير معروف";
+        var icon = status === "مفتوح" ? openCheckpointIcon : closedCheckpointIcon;
 
         L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
           .addTo(map)
-          .bindPopup(`<b>${feature.properties['name_ar'] || 'غير محدد'}</b><br/>
+          .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
             <label>اختر الحالة:</label>
             <select id="select-${id}">
-              <option value="مفتوح">مفتوح</option>
-              <option value="مغلق">مغلق</option>
+              <option value="مفتوح" ${status === "مفتوح" ? "selected" : ""}>مفتوح</option>
+              <option value="مغلق" ${status === "مغلق" ? "selected" : ""}>مغلق</option>
             </select>
             <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
       });
