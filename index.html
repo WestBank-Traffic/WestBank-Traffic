@@ -79,15 +79,16 @@
     };
 
     var checkpointMarkers = {};
+    var extraInfoById = {};  // هنا سنخزن بيانات EX_BusWB
 
+    // تحميل بيانات الحافلات و الحواجز
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(res => res.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(res => res.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(res => res.json())
     ]).then(([busData, checkpointData, extraBusData]) => {
 
-      // تخزين البيانات الإضافية حسب ID_CODE بعد تطبيعها
-      const extraInfoById = {};
+      // تخزين البيانات الإضافية في extraInfoById حسب ID_CODE
       extraBusData.forEach(item => {
         const id = (item.ID_CODE || '').toString().trim();
         extraInfoById[id] = item;
@@ -98,7 +99,7 @@
         pointToLayer: (feature, latlng) => L.marker(latlng, { icon: busIcon }),
         onEachFeature: (feature, layer) => {
           const idCode = (feature.properties['ID_CODE'] || '').toString().trim();
-          const extra = extraInfoById[idCode];
+          const extra = extraInfoById[idCode]; // الحصول على البيانات الإضافية
 
           let popupContent = `<b>${feature.properties['الاسم']}</b>`;
           if (extra) {
@@ -122,10 +123,7 @@
         var id = feature.properties.ID;
         var status = "مفتوح";
 
-        var marker = L.marker([
-          feature.geometry.coordinates[1],
-          feature.geometry.coordinates[0]
-        ], { icon: checkpointIcons[status] }).addTo(map);
+        var marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], { icon: checkpointIcons[status] }).addTo(map);
 
         checkpointMarkers[id] = marker;
 
