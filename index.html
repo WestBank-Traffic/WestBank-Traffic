@@ -257,14 +257,14 @@
     }
 
     var openCheckpointIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg', // هذا هو لوغو المفتوح
       iconSize: [30, 30],
       iconAnchor: [15, 30],
       popupAnchor: [0, -30]
     });
 
     var closedCheckpointIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg', // هذا هو لوغو المغلق
       iconSize: [30, 30],
       iconAnchor: [15, 30],
       popupAnchor: [0, -30]
@@ -438,18 +438,19 @@
 
         // استخدم حالة الحاجز من القائمة المحدثة
         var status = checkpointStatus[name] || "غير معروف";
+        // التحقق من كلمة "مغلق" لتحديد الأيقونة
         var icon = status.includes("مغلق") ? closedCheckpointIcon : openCheckpointIcon;
 
         L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
           .addTo(map)
           .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
             <b>الحالة:</b> ${status}<br/>
-            <label>اختر الحالة:</label>
-            <select id="select-${id}">
-              <option value="مفتوح" ${status.includes("مفتوح") ? "selected" : ""}>مفتوح</option>
-              <option value="مغلق" ${status.includes("مغلق") ? "selected" : ""}>مغلق</option>
-            </select>
-            <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
+            <label>اختر الحالة:&lt;/label&gt;
+            &lt;select id=&quot;select-${id}&quot;&gt;
+              &lt;option value=&quot;مفتوح&quot; ${status.includes(&quot;مفتوح&quot;) ? &quot;selected&quot; : &quot;&quot;}&gt;مفتوح&lt;/option&gt;
+              &lt;option value=&quot;مغلق&quot; ${status.includes(&quot;مغلق&quot;) ? &quot;selected&quot; : &quot;&quot;}&gt;مغلق&lt;/option&gt;
+            &lt;/select&gt;
+            &lt;button onclick=&quot;updateCheckpoint('${id}')&quot;&gt;تحديث الحالة&lt;/button&gt;`);
       });
 
       L.geoJSON(roadData, {
@@ -499,14 +500,15 @@
       var selectElement = document.getElementById(`select-${id}`);
       var newStatus = selectElement.value;
 
-      // تحديث الحالة في كائن checkpointStatus
-      // نحتاج لإيجاد اسم الحاجز المقابل للـ ID، وهذا يتطلب البحث في البيانات الأصلية
-      // أو تمرير الاسم مباشرة إلى هذه الدالة. حالياً، هذه الدالة هي للتوضيح فقط
-      // ولن تؤثر على البيانات الأصلية في ملفات GeoJSON.
-      alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
+      // لتحديث حالة الحاجز في الـ checkpointStatus وكيفية عرضها على الخريطة
+      // ستحتاج إلى الوصول إلى اسم الحاجز من الـ ID أو تمريره كمعامل
+      // ثم تحديث الـ popup والأيقونة.
+      // كمثال، إذا كان اسم الحاجز هو 'name_ar' من الـ GeoJSON:
+      // var checkpointName = &quot;...&quot;; // يجب الحصول على اسم الحاجز هنا
+      // checkpointStatus[checkpointName] = newStatus;
+      // alert(`تم تحديث حالة الحاجز ${checkpointName} إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت.`);
 
-      // يمكنك هنا إضافة منطق لتغيير أيقونة الحاجز على الخريطة
-      // أو تحديث الـ popup لعرض الحالة الجديدة.
+      alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
     };
 
     function showDetails(province, startCity, endCity, fare, lineStatus, route) {
