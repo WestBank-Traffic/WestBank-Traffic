@@ -102,7 +102,7 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
-    var map = L.map('map').setView([31.5, 35.2], 10); // Adjusted to central point of the West Bank
+    var map = L.map('map').setView([31.9, 35.2], 9); // Adjusted to central point of the West Bank with zoom level 9
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -206,7 +206,7 @@
                 ? exData['اجرة المواصلات بالحافلات العمومي'] 
                 : 'غير متوفرة';
 
-              popupContent += `<div class="popup-destination" onclick="alert('تفاصيل الوجهة:\\nمحافظة البداية: ${exData['بداية الخط - محافظة']}\\nمدينة البداية: ${exData['بداية الخط - مدينة']}\\nمدينة النهاية: ${exData['نهاية الخط - مدينة']}\\nأجرة المواصلات: ${fare}\\nحالة الخط: ${exData['حالة الخط']}\\nمسار الخط: ${exData['مسار الخط ذهاب و اياب']}')">` +
+              popupContent += `<div class="popup-destination" onclick="showDetails('${exData['بداية الخط - محافظة']}', '${exData['بداية الخط - مدينة']}', '${exData['نهاية الخط - مدينة']}', '${fare}', '${exData['حالة الخط']}', '${exData['مسار الخط ذهاب و اياب']}')">` +
                 `${exData["نهاية الخط - مدينة"] || "-"} ` +
                 `</div>`;
             });
@@ -259,6 +259,41 @@
       var status = document.getElementById(`select-${id}`).value;
       alert(`تم تحديث حالة الحاجز ${id} إلى: ${status}`);
     };
+
+    // دالة لعرض التفاصيل داخل جدول
+    function showDetails(province, startCity, endCity, fare, lineStatus, route) {
+      const tableHTML = `
+        <table style="width:100%; text-align:right; border-collapse: collapse;">
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">المحافظة</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${province}</td>
+          </tr>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">مدينة البداية</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${startCity}</td>
+          </tr>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">مدينة النهاية</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${endCity}</td>
+          </tr>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">أجرة المواصلات</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${fare}</td>
+          </tr>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">حالة الخط</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${lineStatus}</td>
+          </tr>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px;">مسار الخط</th>
+            <td style="border: 1px solid #ddd; padding: 8px;">${route}</td>
+          </tr>
+        </table>
+      `;
+
+      // عرض الجدول في نافذة منبثقة
+      alert(tableHTML);
+    }
   </script>
 </body>
 </html>
