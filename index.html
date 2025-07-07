@@ -298,27 +298,77 @@
       }
     });
 
+    // تحديث حالات الحواجز بناءً على البيانات المقدمة
     var checkpointStatus = {
+      // حواجز منطقة الوسط
       "المدخل الشمالي لمدينة البيرة": "مغلق",
-      "بوابة عطارة": "مفتوح",
+      "بوابات عطارة البلد": "مفتوح",
       "مدخل روابي": "مفتوح",
       "عين سينيا": "مفتوح",
-      "الجلزون": "مفتوح",
+      "طريق الجلزون": "مغلق",
       "عيون الحرامية": "مفتوح",
-      "بوابة سنجل": "مفتوح",
       "بوابة النبي صالح": "مفتوح",
-      "بوابة عابود": "مفتوح",
-      "بوابة ترمسعيا": "مفتوح",
       "سلواد يبرود": "مفتوح",
+      "بوابة عابود": "مفتوح",
+      "سنجل": "مفتوح",
+      "ترمسعيا": "مفتوح",
       "مداخل ومخارج أريحا": "مفتوح",
-      "كفر عقب": "مفتوح",
-      "قلنديا": "مفتوح",
+      "كفر عقب": "مفتوح (لكن به كثافة سير)",
+      "قلنديا": "مفتوح (لكن به أزمة)",
       "جبع": "مفتوح",
-      "طريق حزما": "مغلق",
-      "دوار عناتا": "مفتوح",
+      "حزما": "مفتوح",
+      "عناتا": "مفتوح (لكن به أزمة)",
       "زعيم": "مفتوح",
-      "العيزرية": "مغلق"
+      "العيزرية": "مفتوح (لكن به أزمة وشرطة)",
+
+      // حواجز محافظات الجنوب
+      "حاجز الكونتينر": "مفتوح (لكن به تفتيش عشوائي)",
+      "عش غراب": "مفتوح",
+      "حاجز النشاش": "مفتوح (للداخل، للخارج أزمة)",
+      "ترقوميا المصانع": "مفتوح (لكن به أزمة وتفتيش للخارج)",
+      "دوار تقوع": "مفتوح",
+      "كرمة": "مفتوح",
+      "زيف": "مفتوح",
+      "بوابة الفحص": "مفتوح",
+      "فرش الهوى": "مفتوح (لكن به أزمة وتفتيش للخارج)",
+      "رأس الجورة": "مغلق",
+      "بوابة إذنا": "مغلق",
+      "النبي يونس": "مفتوح (لكن به كثافة سير للخارج)",
+      "سعير": "مفتوح (لكن به تفتيش للخارج)",
+      "بوابات العروب": "مفتوح",
+      "دورا": "مغلق",
+      "الفوار": "مغلق",
+      "المنشية": "مفتوح",
+
+      // حواجز محافظات الشمال
+      "المدخل الشمالي لسلفيت": "مفتوح",
+      "بروقين": "مغلق",
+      "بوابة كفر الديك": "مغلق",
+      "بوابة جماعين": "مغلق",
+      "سيلة الظهر": "مفتوح",
+      "مدخل الساوية": "مفتوح",
+      "قبلان": "مفتوح",
+      "واد قانا": "مفتوح",
+      "مفترق جيت": "مفتوح (لكن به أزمة)",
+      "زعترة": "مفتوح",
+      "بوابة يتما": "مفتوح",
+      "يتسهار": "مفتوح",
+      "حوارة البلد": "مفتوح",
+      "بوابة بورين": "مفتوح",
+      "عورتا": "مفتوح",
+      "بيت فوريك": "مفتوح (لكن به أزمة للداخل)",
+      "مدخل قلقيلية": "مفتوح",
+      "حجة الفندق": "مفتوح",
+      "طريق الـ17": "مفتوح",
+      "مدخل قراوة": "مفتوح",
+      "المربعة": "مفتوح",
+      "دير شرف": "مفتوح (لكن به كثافة سير للخارج)",
+      "عنبتا": "مغلق (للخارج)",
+      "حاجز صرة": "مفتوح (لكن به أزمة للخارج)",
+      "حاجز الحمرا": "مفتوح (لكن به أزمة باتجاه أريحا)",
+      "حاجز تياسير": "مغلق"
     };
+
 
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
@@ -386,16 +436,18 @@
         var id = feature.properties.ID;
         var name = feature.properties.name_ar;
 
+        // استخدم حالة الحاجز من القائمة المحدثة
         var status = checkpointStatus[name] || "غير معروف";
-        var icon = status === "مفتوح" ? openCheckpointIcon : closedCheckpointIcon;
+        var icon = status.includes("مغلق") ? closedCheckpointIcon : openCheckpointIcon;
 
         L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
           .addTo(map)
           .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
+            <b>الحالة:</b> ${status}<br/>
             <label>اختر الحالة:</label>
             <select id="select-${id}">
-              <option value="مفتوح" ${status === "مفتوح" ? "selected" : ""}>مفتوح</option>
-              <option value="مغلق" ${status === "مغلق" ? "selected" : ""}>مغلق</option>
+              <option value="مفتوح" ${status.includes("مفتوح") ? "selected" : ""}>مفتوح</option>
+              <option value="مغلق" ${status.includes("مغلق") ? "selected" : ""}>مغلق</option>
             </select>
             <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
       });
@@ -442,8 +494,19 @@
     });
 
     window.updateCheckpoint = function(id) {
-      var status = document.getElementById(`select-${id}`).value;
-      alert(`تم تحديث حالة الحاجز ${id} إلى: ${status}`);
+      // هذه الدالة ستقوم بتحديث حالة الحاجز في الذاكرة المؤقتة (checkpointStatus)
+      // ولن تحفظ التغييرات بشكل دائم عبر تحديث الصفحة ما لم يكن هناك backend
+      var selectElement = document.getElementById(`select-${id}`);
+      var newStatus = selectElement.value;
+
+      // تحديث الحالة في كائن checkpointStatus
+      // نحتاج لإيجاد اسم الحاجز المقابل للـ ID، وهذا يتطلب البحث في البيانات الأصلية
+      // أو تمرير الاسم مباشرة إلى هذه الدالة. حالياً، هذه الدالة هي للتوضيح فقط
+      // ولن تؤثر على البيانات الأصلية في ملفات GeoJSON.
+      alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
+
+      // يمكنك هنا إضافة منطق لتغيير أيقونة الحاجز على الخريطة
+      // أو تحديث الـ popup لعرض الحالة الجديدة.
     };
 
     function showDetails(province, startCity, endCity, fare, lineStatus, route) {
@@ -558,7 +621,8 @@
 
       // محاولة البحث عن الوجهة أولاً كاسم مجتمع (CommunityN)
       let communityFound = false;
-      let communityCenter = null;
+      let destinationLatLng = null; // ستخزن إحداثيات الوجهة النهائية (سواء من CommunityN أو Geocoder)
+      
       if (communityGeoJsonLayer) {
         communityGeoJsonLayer.eachLayer(function(layer) {
           if (layer.feature && layer.feature.properties &&
@@ -574,11 +638,11 @@
             });
             // الحصول على مركز المنطقة لوضع علامة النهاية
             const bounds = layer.getBounds();
-            communityCenter = bounds.getCenter();
+            destinationLatLng = bounds.getCenter();
 
             // إضافة علامة في مركز منطقة المجتمع
-            destinationMarker = L.marker(communityCenter).addTo(map).bindPopup(`نقطة النهاية: ${layer.feature.properties.CommunityN}`).openPopup();
-            map.setView(communityCenter, 14); // يمكنك تعديل مستوى التكبير هنا
+            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${layer.feature.properties.CommunityN}`).openPopup();
+            map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
             return; // توقف بعد العثور على أول تطابق
           }
         });
@@ -588,49 +652,30 @@
       if (!communityFound) {
         geocoder.geocode(destination, function(results) {
           if (results && results.length > 0) {
-            const destinationLatLng = results[0].center;
+            destinationLatLng = results[0].center;
             
             // إضافة علامة في الوجهة المحددة بواسطة Geocoder
             destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
             map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
 
-            routingControl = L.Routing.control({
-              waypoints: [
-                L.latLng(userCoordinates[0], userCoordinates[1]),
-                destinationLatLng
-              ],
-              router: L.Routing.osrmv1({
-                  serviceUrl: 'https://router.project-osrm.org/route/v1'
-              }),
-              routeWhileDragging: true,
-              language: 'ar',
-              showAlternatives: false,
-              lineOptions: {
-                styles: [{color: 'red', weight: 6, opacity: 0.8}] // تعيين لون المسار إلى الأحمر
-              },
-              collapsible: true
-            }).addTo(map);
+            // الآن بعد تحديد destinationLatLng، قم بإنشاء التحكم في التوجيه
+            initiateRouting(destinationLatLng);
 
-            routingControl.on('routesfound', function(e) {
-                var routes = e.routes;
-                var summary = routes[0].summary;
-                alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
-            });
-
-            routingControl.on('routingerror', function(e) {
-                alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
-                console.error("Routing error:", e.error);
-            });
           } else {
             alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
           }
         });
       } else { // إذا تم العثور على الوجهة كاسم مجتمع
-        // استخدم مركز المجتمع كنقطة نهاية للمسار
+        // استخدم مركز المجتمع كنقطة نهاية للمسار الذي تم تحديده مسبقًا
+        initiateRouting(destinationLatLng);
+      }
+    });
+
+    function initiateRouting(destinationCoordinates) {
         routingControl = L.Routing.control({
           waypoints: [
             L.latLng(userCoordinates[0], userCoordinates[1]),
-            communityCenter
+            destinationCoordinates
           ],
           router: L.Routing.osrmv1({
               serviceUrl: 'https://router.project-osrm.org/route/v1'
@@ -654,8 +699,7 @@
             alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
             console.error("Routing error:", e.error);
         });
-      }
-    });
+    }
   </script>
 </body>
 </html>
