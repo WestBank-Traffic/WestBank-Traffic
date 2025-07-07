@@ -12,29 +12,28 @@
     }
     #control-box {
       position: absolute;
-      top: 5px; /* تم رفع المسافة */
+      top: 5px; /* المسافة العليا */
       left: 0;
       right: 0;
       background: white;
       padding: 5px;
+      height: 2cm;
+      width: 1cm; /* تم تقليل العرض إلى 1 سم */
       border-radius: 5px;
       z-index: 1000;
       display: flex;
-      justify-content: space-between;
-      width: calc(100% - 20px);
-      margin: 0 10px;
+      justify-content: center;
       align-items: center;
     }
     .leaflet-control-title {
-      font-size: 22px; /* تم تقليل الحجم هنا */
+      font-size: 18px; /* تم تصغير الحجم */
       font-weight: bold;
       text-align: center;
       flex: 2;
-      padding: 10px;
       color: #333;
       background-color: #fff;
       border-radius: 5px;
-      margin: 10px 0;
+      margin: 0;
     }
     .popup-destination {
       padding: 8px 15px;
