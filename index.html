@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</title>
+  <title>النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     html, body, #map {
@@ -26,10 +26,15 @@
       align-items: center;
     }
     .leaflet-control-title {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
       text-align: center;
       flex: 2;
+      padding: 10px;
+      color: #333;
+      background-color: #fff;
+      border-radius: 5px;
+      margin: 10px 0;
     }
     .popup-destination {
       padding: 8px 15px;
@@ -89,7 +94,7 @@
 <body>
   <div id="map"></div>
   <div id="control-box">
-    <div class="leaflet-control-title">مواقع مراكز النقل العام -الفردات- في الضفة الغربية</div>
+    <div class="leaflet-control-title">النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</div>
   </div>
 
   <!-- زر تحديد الموقع -->
