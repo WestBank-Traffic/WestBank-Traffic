@@ -263,36 +263,42 @@
     // دالة لعرض التفاصيل داخل جدول
     function showDetails(province, startCity, endCity, fare, lineStatus, route) {
       const tableHTML = `
-        <table style="width:100%; text-align:right; border-collapse: collapse;">
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">المحافظة</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${province}</td>
-          </tr>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">مدينة البداية</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${startCity}</td>
-          </tr>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">مدينة النهاية</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${endCity}</td>
-          </tr>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">أجرة المواصلات</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${fare}</td>
-          </tr>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">حالة الخط</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${lineStatus}</td>
-          </tr>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px;">مسار الخط</th>
-            <td style="border: 1px solid #ddd; padding: 8px;">${route}</td>
-          </tr>
-        </table>
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h3 style="text-align: center; font-size: 20px;">تفاصيل الرحلة</h3>
+          <table style="width: 100%; text-align: right; border-collapse: collapse; margin-top: 15px;">
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">المحافظة</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${province}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مدينة البداية</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${startCity}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مدينة النهاية</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${endCity}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">أجرة المواصلات</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${fare}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">حالة الخط</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${lineStatus}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مسار الخط</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${route}</td>
+            </tr>
+          </table>
+        </div>
       `;
-
+      
       // عرض الجدول في نافذة منبثقة
-      alert(tableHTML);
+      var popup = L.popup()
+        .setLatLng(map.getCenter())
+        .setContent(tableHTML)
+        .openOn(map);
     }
   </script>
 </body>
