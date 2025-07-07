@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
     html, body, #map {
       height: 100%;
@@ -23,6 +24,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column; /* لجعل العناصر تتكدس عموديًا */
     }
     .leaflet-control-title {
       font-size: 18px; /* الحفاظ على الحجم المناسب */
@@ -33,6 +35,8 @@
       background-color: #fff;
       border-radius: 5px;
       margin: 0;
+      width: 100%; /* ليمتد العنوان عرض الصندوق */
+      padding-bottom: 5px;
     }
     .popup-destination {
       padding: 8px 15px;
@@ -74,6 +78,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 18px;
+      margin-top: 5px; /* مسافة بين العناصر */
     }
     .location-icon {
       background-color: #ff9800;
@@ -84,8 +89,24 @@
       font-size: 20px;
       position: absolute;
       top: 10%;
-      left: 10%;
+      left: 10px; /* تم تعديل الموضع */
       z-index: 1001;
+    }
+    #destination-input-container {
+      width: 90%; /* عرض الحاوية */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
+    #destination-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box; /* لضمان أن العرض يشمل الـ padding والـ border */
     }
   </style>
 </head>
@@ -93,9 +114,12 @@
   <div id="map"></div>
   <div id="control-box">
     <div class="leaflet-control-title">النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</div>
+    <div id="destination-input-container">
+      <input type="text" id="destination-input" placeholder="أدخل الوجهة هنا (مثال: رام الله)" />
+      <button id="get-directions-btn">الحصول على الاتجاهات</button>
+    </div>
   </div>
 
-  <!-- زر تحديد الموقع -->
   <div id="location-btn" class="location-icon">
     📍
   </div>
@@ -113,7 +137,7 @@
     }).addTo(map);
 
     var busIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg', 
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/logo%20Bus.svg',
       iconSize: [30, 30],
       iconAnchor: [15, 30],
       popupAnchor: [0, -30]
@@ -135,6 +159,7 @@
 
     var userLocationMarker = null;
     var userCoordinates = null;
+    var routingControl = null; // لمتغير التحكم في التوجيه
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
@@ -148,6 +173,9 @@
           }
 
           map.setView(userCoordinates, 13);
+        }, function(error) {
+          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
+          console.error("Error getting location:", error);
         });
       } else {
         alert("لم يتمكن المتصفح من الحصول على موقعك.");
@@ -178,7 +206,7 @@
     };
 
     // جلب بيانات الحافلات و الحواجز
-    Promise.all([ 
+    Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
@@ -205,8 +233,8 @@
           if (exDataArray.length > 0) {
             popupContent += '<div>';
             exDataArray.forEach((exData) => {
-              const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== "" 
-                ? exData['اجرة المواصلات بالحافلات العمومي'] 
+              const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== ""
+                ? exData['اجرة المواصلات بالحافلات العمومي']
                 : 'غير متوفرة';
 
               popupContent += `<div class="popup-destination" onclick="showDetails('${exData['بداية الخط - محافظة']}', '${exData['بداية الخط - مدينة']}', '${exData['نهاية الخط - مدينة']}', '${fare}', '${exData['حالة الخط']}', '${exData['مسار الخط ذهاب و اياب']}')">` +
@@ -296,13 +324,68 @@
           </table>
         </div>
       `;
-      
+
       // عرض الجدول في نافذة منبثقة
       var popup = L.popup()
         .setLatLng(map.getCenter())
         .setContent(tableHTML)
         .openOn(map);
     }
+
+    // إضافة وظيفة تحديد الاتجاهات
+    document.getElementById('get-directions-btn').addEventListener('click', function() {
+      const destination = document.getElementById('destination-input').value.trim();
+
+      if (!destination) {
+        alert("الرجاء إدخال الوجهة.");
+        return;
+      }
+
+      if (!userCoordinates) {
+        alert("الرجاء تحديد موقعك الحالي أولاً باستخدام زر الموقع.");
+        return;
+      }
+
+      // إزالة المسار القديم إذا كان موجودًا
+      if (routingControl) {
+        map.removeControl(routingControl);
+      }
+
+      // استخدام Leaflet Routing Machine لتحديد المسار
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userCoordinates[0], userCoordinates[1]), // موقع المستخدم
+          L.latLng(0, 0) // سيتم تحديث هذا لاحقًا بناءً على الوجهة
+        ],
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1' // استخدام خدمة OSRM العامة
+        }),
+        routeWhileDragging: true,
+        geocoder: L.Control.Geocoder.nominatim(), // لإضافة دعم البحث عن الأماكن بالنص
+        language: 'ar',
+        showAlternatives: false,
+        lineOptions: {
+          styles: [{color: 'blue', weight: 6, opacity: 0.6}]
+        }
+      }).addTo(map);
+
+      // تحديث الوجهة بعد إنشاء عنصر التحكم
+      routingControl.setWaypoints([
+        L.latLng(userCoordinates[0], userCoordinates[1]),
+        destination
+      ]);
+
+      routingControl.on('routesfound', function(e) {
+          var routes = e.routes;
+          var summary = routes[0].summary;
+          alert('المسافة: ' + summary.totalDistance / 1000 + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
+      });
+
+      routingControl.on('routingerror', function(e) {
+          alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
+          console.error("Routing error:", e.error);
+      });
+    });
   </script>
 </body>
 </html>
