@@ -275,6 +275,9 @@
     var routingControl = null;
     var allBusDestinations = new Set(); // لتخزين الوجهات الفريدة
 
+    // متغير عام لتخزين طبقة community.geojson
+    var communityGeoJsonLayer = null;
+
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -412,26 +415,23 @@
         }
       }).addTo(map);
 
-      // *** START: عرض بيانات community.geojson هنا ***
-      L.geoJSON(communityData, {
+      // *** START: عرض بيانات community.geojson هنا مع نمط شفاف مبدئياً ***
+      communityGeoJsonLayer = L.geoJSON(communityData, {
         style: function(feature) {
-          // يمكنك تخصيص الأسلوب هنا بناءً على خصائص الميزة إذا أردت
+          // النمط الافتراضي: شفاف جداً
           return {
-            color: '#8B008B', // لون المسارات/المناطق من community.geojson (أرجواني داكن)
-            weight: 3,
-            opacity: 0.8,
-            dashArray: '5, 5' // خط متقطع لتمييزه
+            color: '#8B008B',      // لون خط الأساس
+            weight: 0.5,           // خط رفيع جداً
+            opacity: 0.05,         // شفافية عالية جداً
+            fillOpacity: 0,        // بدون تعبئة
+            fillColor: 'transparent'
           };
         },
         onEachFeature: function(feature, layer) {
-          // إذا كان هناك حقل معين تريد عرضه في الـ popup من community.geojson
-          // على سبيل المثال، إذا كان هناك حقل "name" أو "description"
-          if (feature.properties && feature.properties.name) {
-            layer.bindPopup(`<b>اسم المجتمع/المسار:</b> ${feature.properties.name}`);
-          } else if (feature.properties && feature.properties.description) {
-            layer.bindPopup(`<b>الوصف:</b> ${feature.properties.description}`);
+          // يمكن هنا إضافة popup إذا كان هناك حقل CommunityN أو غيره
+          if (feature.properties && feature.properties.CommunityN) {
+            layer.bindPopup(`<b>المجتمع:</b> ${feature.properties.CommunityN}`);
           } else {
-            // عرض جميع الخصائص إذا لم يتم العثور على حقول محددة
             let popupContent = '<b>معلومات المجتمع:</b><br>';
             for (let key in feature.properties) {
               popupContent += `${key}: ${feature.properties[key]}<br>`;
@@ -442,7 +442,7 @@
             layer.bindPopup(popupContent);
           }
         }
-      }).addTo(map);
+      }).addTo(map); // أضف الطبقة إلى الخريطة بأسلوبها الشفاف المبدئي
       // *** END: عرض بيانات community.geojson هنا ***
 
     }).catch(err => {
@@ -544,15 +544,57 @@
         return;
       }
 
+      // إزالة التحكم في التوجيه الحالي إذا كان موجوداً
       if (routingControl) {
         map.removeControl(routingControl);
+        routingControl = null; // إعادة تعيين لعدم وجود تحكم
       }
+
+      // *** START: إعادة تعيين نمط Community.geojson ومحاولة التحديد ***
+      // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
+      if (communityGeoJsonLayer) {
+        communityGeoJsonLayer.eachLayer(function(layer) {
+          layer.setStyle({
+            color: '#8B008B',
+            weight: 0.5,
+            opacity: 0.05,
+            fillOpacity: 0,
+            fillColor: 'transparent'
+          });
+        });
+      }
+      // *** END: إعادة تعيين نمط Community.geojson ومحاولة التحديد ***
+
 
       var geocoder = L.Control.Geocoder.nominatim();
 
       geocoder.geocode(destination, function(results) {
         if (results && results.length > 0) {
           const destinationLatLng = results[0].center;
+
+          // *** START: تحديد منطقة المجتمع المطابقة وتظليلها ***
+          if (communityGeoJsonLayer) {
+            communityGeoJsonLayer.eachLayer(function(layer) {
+              // افتراض أن حقل اسم المجتمع في GeoJSON هو "CommunityN"
+              // ومقارنته بالوجهة المدخلة (مع تجاهل حالة الأحرف)
+              if (layer.feature && layer.feature.properties &&
+                  layer.feature.properties.CommunityN &&
+                  layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
+                layer.setStyle({
+                  color: 'red',          // لون خط التحديد
+                  weight: 5,             // سماكة خط التحديد
+                  opacity: 0.8,          // شفافية خط التحديد
+                  fillOpacity: 0.3,      // شفافية تعبئة المنطقة
+                  fillColor: 'red'       // لون تعبئة المنطقة
+                });
+                // يمكن هنا أيضاً تكبير الخريطة لتشمل المنطقة المحددة
+                // map.fitBounds(layer.getBounds());
+              }
+            });
+          }
+          // *** END: تحديد منطقة المجتمع المطابقة وتظليلها ***
+
+
           routingControl = L.Routing.control({
             waypoints: [
               L.latLng(userCoordinates[0], userCoordinates[1]),
