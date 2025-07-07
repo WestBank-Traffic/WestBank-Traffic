@@ -12,13 +12,12 @@
     }
     #control-box {
       position: absolute;
-      top: 5px; /* المسافة العليا */
+      top: 10px; /* زيادة المسافة العلوية */
       left: 0;
       right: 0;
       background: white;
-      padding: 5px;
-      height: 2cm;
-      width: 1cm; /* تم تقليل العرض إلى 1 سم */
+      padding: 3px; /* تقليل الـ padding */
+      height: auto; /* عدم تحديد الارتفاع بشكل ثابت */
       border-radius: 5px;
       z-index: 1000;
       display: flex;
@@ -26,7 +25,7 @@
       align-items: center;
     }
     .leaflet-control-title {
-      font-size: 18px; /* تم تصغير الحجم */
+      font-size: 18px; /* الحفاظ على الحجم المناسب */
       font-weight: bold;
       text-align: center;
       flex: 2;
