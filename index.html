@@ -326,11 +326,8 @@
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson').then(r => r.json()),
-      // *** START: إضافة تحميل ملف community.geojson هنا ***
-      // الرجاء التأكد من أن هذا هو الرابط الصحيح لملف community.geojson الخام
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/community.geojson').then(r => r.json())
-      // *** END: إضافة تحميل ملف community.geojson هنا ***
-    ]).then(([busData, exBusData, checkpointData, roadData, communityData]) => { // إضافة communityData هنا
+    ]).then(([busData, exBusData, checkpointData, roadData, communityData]) => {
       let exBusDictByID = {};
       exBusData.forEach(item => {
         let id = item["ID_CODE"];
@@ -339,7 +336,6 @@
         }
         exBusDictByID[id].push(item);
 
-        // جمع الوجهات الفريدة
         if (item["نهاية الخط - مدينة"] && item["نهاية الخط - مدينة"].trim() !== "") {
           allBusDestinations.add(item["نهاية الخط - مدينة"].trim());
         }
@@ -408,27 +404,24 @@
       L.geoJSON(roadData, {
         style: function() {
           return {
-            color: '#D3D3D3',
+            color: '#D3D3D3', // لون رمادي فاتح للطرق
             weight: 2,
             opacity: 0.7,
           };
         }
       }).addTo(map);
 
-      // *** START: عرض بيانات community.geojson هنا مع نمط شفاف مبدئياً ***
       communityGeoJsonLayer = L.geoJSON(communityData, {
         style: function(feature) {
-          // النمط الافتراضي: شفاف جداً
           return {
-            color: '#8B008B',      // لون خط الأساس
-            weight: 0.5,           // خط رفيع جداً
-            opacity: 0.05,         // شفافية عالية جداً
-            fillOpacity: 0,        // بدون تعبئة
+            color: '#8B008B',
+            weight: 0.5,
+            opacity: 0.05,
+            fillOpacity: 0,
             fillColor: 'transparent'
           };
         },
         onEachFeature: function(feature, layer) {
-          // يمكن هنا إضافة popup إذا كان هناك حقل CommunityN أو غيره
           if (feature.properties && feature.properties.CommunityN) {
             layer.bindPopup(`<b>المجتمع:</b> ${feature.properties.CommunityN}`);
           } else {
@@ -442,8 +435,7 @@
             layer.bindPopup(popupContent);
           }
         }
-      }).addTo(map); // أضف الطبقة إلى الخريطة بأسلوبها الشفاف المبدئي
-      // *** END: عرض بيانات community.geojson هنا ***
+      }).addTo(map);
 
     }).catch(err => {
       console.error('خطأ في تحميل البيانات أو معالجتها:', err);
@@ -494,12 +486,10 @@
         .openOn(map);
     }
 
-    // وظيفة لملء جدول الوجهات
     function populateDestinationTable() {
       const tbody = document.querySelector('#destination-table tbody');
-      tbody.innerHTML = ''; // مسح المحتوى القديم
+      tbody.innerHTML = '';
 
-      // تحويل Set إلى Array لفرز الوجهات أبجدياً
       const sortedDestinations = Array.from(allBusDestinations).sort();
 
       sortedDestinations.forEach(destination => {
@@ -511,20 +501,16 @@
       });
     }
 
-    // وظيفة عند اختيار وجهة من الجدول
     function selectDestination(destination) {
-      document.getElementById('destination-table-container').style.display = 'none'; // إخفاء الجدول
-      document.getElementById('manual-destination-input-container').style.display = 'flex'; // إظهار حقل الإدخال اليدوي وزر الاتجاهات
-      document.getElementById('destination-input').value = destination; // وضع الوجهة المختارة في حقل الإدخال
-      // يمكن هنا استدعاء get-directions-btn.click() مباشرة إذا أردت بدء التوجيه فوراً
-      // document.getElementById('get-directions-btn').click();
+      document.getElementById('destination-table-container').style.display = 'none';
+      document.getElementById('manual-destination-input-container').style.display = 'flex';
+      document.getElementById('destination-input').value = destination;
     }
 
-    // حدث النقر على أيقونة تحديد الوجهة
     document.getElementById('set-destination-icon').addEventListener('click', function() {
       const destinationTableContainer = document.getElementById('destination-table-container');
       if (destinationTableContainer.style.display === 'none') {
-        populateDestinationTable(); // ملء الجدول قبل إظهاره
+        populateDestinationTable();
         destinationTableContainer.style.display = 'block';
       } else {
         destinationTableContainer.style.display = 'none';
@@ -544,14 +530,11 @@
         return;
       }
 
-      // إزالة التحكم في التوجيه الحالي إذا كان موجوداً
       if (routingControl) {
         map.removeControl(routingControl);
-        routingControl = null; // إعادة تعيين لعدم وجود تحكم
+        routingControl = null;
       }
 
-      // *** START: إعادة تعيين نمط Community.geojson ومحاولة التحديد ***
-      // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
       if (communityGeoJsonLayer) {
         communityGeoJsonLayer.eachLayer(function(layer) {
           layer.setStyle({
@@ -563,8 +546,6 @@
           });
         });
       }
-      // *** END: إعادة تعيين نمط Community.geojson ومحاولة التحديد ***
-
 
       var geocoder = L.Control.Geocoder.nominatim();
 
@@ -572,28 +553,21 @@
         if (results && results.length > 0) {
           const destinationLatLng = results[0].center;
 
-          // *** START: تحديد منطقة المجتمع المطابقة وتظليلها ***
           if (communityGeoJsonLayer) {
             communityGeoJsonLayer.eachLayer(function(layer) {
-              // افتراض أن حقل اسم المجتمع في GeoJSON هو "CommunityN"
-              // ومقارنته بالوجهة المدخلة (مع تجاهل حالة الأحرف)
               if (layer.feature && layer.feature.properties &&
                   layer.feature.properties.CommunityN &&
                   layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
                 layer.setStyle({
-                  color: 'red',          // لون خط التحديد
-                  weight: 5,             // سماكة خط التحديد
-                  opacity: 0.8,          // شفافية خط التحديد
-                  fillOpacity: 0.3,      // شفافية تعبئة المنطقة
-                  fillColor: 'red'       // لون تعبئة المنطقة
+                  color: 'red',
+                  weight: 5,
+                  opacity: 0.8,
+                  fillOpacity: 0.3,
+                  fillColor: 'red'
                 });
-                // يمكن هنا أيضاً تكبير الخريطة لتشمل المنطقة المحددة
-                // map.fitBounds(layer.getBounds());
               }
             });
           }
-          // *** END: تحديد منطقة المجتمع المطابقة وتظليلها ***
-
 
           routingControl = L.Routing.control({
             waypoints: [
