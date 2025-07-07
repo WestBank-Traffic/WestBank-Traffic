@@ -6,6 +6,7 @@
   <title>النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   <style>
     html, body, #map {
       height: 100%;
@@ -91,34 +92,18 @@
       left: 10px;
       z-index: 1001;
     }
-    #destination-input-container {
-      width: 90%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 10px;
-    }
-    #destination-input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
     /* أنماط أيقونات المحافظات */
-    .icon-ramallah { background-color: #FF5733; } /* أحمر برتقالي */
-    .icon-nablus { background-color: #33FF57; }   /* أخضر فاتح */
-    .icon-jenin { background-color: #3357FF; }    /* أزرق */
-    .icon-hebron { background-color: #FF33F5; }   /* بنفسجي فاتح */
-    .icon-bethlehem { background-color: #FFBD33; } /* برتقالي */
-    .icon-jericho { background-color: #33FFF5; }  /* سماوي */
-    .icon-tubas { background-color: #A833FF; }   /* بنفسجي غامق */
-    .icon-qalqilya { background-color: #FF338A; } /* وردي */
-    .icon-tulkarm { background-color: #33FFBD; }  /* أخضر مزرق */
-    .icon-salfit { background-color: #D4FF33; }   /* أصفر مخضر */
-    .icon-jerusalem { background-color: #8A33FF; } /* بنفسجي */
+    .icon-ramallah { background-color: #FF5733; }
+    .icon-nablus { background-color: #33FF57; }
+    .icon-jenin { background-color: #3357FF; }
+    .icon-hebron { background-color: #FF33F5; }
+    .icon-bethlehem { background-color: #FFBD33; }
+    .icon-jericho { background-color: #33FFF5; }
+    .icon-tubas { background-color: #A833FF; }
+    .icon-qalqilya { background-color: #FF338A; }
+    .icon-tulkarm { background-color: #33FFBD; }
+    .icon-salfit { background-color: #D4FF33; }
+    .icon-jerusalem { background-color: #8A33FF; }
     .bus-marker-custom {
       border-radius: 50%;
       width: 30px;
@@ -132,13 +117,80 @@
       border: 2px solid #FFF;
       box-shadow: 0 0 5px rgba(0,0,0,0.5);
     }
+
+    /* أنماط جديدة لأيقونة تحديد الوجهة وجدول الوجهات */
+    #set-destination-icon {
+      position: absolute;
+      top: 10%; /* نفس مكان زر الموقع */
+      left: 60px; /* بجانب زر الموقع */
+      background-color: #1976d2; /* لون أزرق */
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px; /* لضبط الحجم */
+      height: 40px; /* لضبط الحجم */
+      box-sizing: border-box;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #destination-table-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1002;
+      padding: 15px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: none; /* مخفي افتراضياً */
+      width: 250px; /* عرض ثابت للجدول */
+      direction: rtl; /* لضمان عرض المحتوى من اليمين لليسار */
+    }
+    #destination-table-container h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    #destination-table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #destination-table-container th,
+    #destination-table-container td {
+      border: 1px solid #eee;
+      padding: 8px;
+      text-align: right;
+    }
+    #destination-table-container th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .destination-item {
+      cursor: pointer;
+      background-color: #e9f5ff;
+      transition: background-color 0.2s ease;
+    }
+    .destination-item:hover {
+      background-color: #cce7ff;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="control-box">
     <div class="leaflet-control-title">النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</div>
-    <div id="destination-input-container">
+    <div id="manual-destination-input-container" style="display: none; width: 90%; flex-direction: column; align-items: center; margin-top: 10px;">
       <input type="text" id="destination-input" placeholder="أدخل الوجهة هنا (مثال: رام الله)" />
       <button id="get-directions-btn">الحصول على الاتجاهات</button>
     </div>
@@ -148,10 +200,29 @@
     📍
   </div>
 
+  <div id="set-destination-icon" title="حدد الوجهة من خطوط الحافلات">
+    🎯
+  </div>
+
+  <div id="destination-table-container">
+    <h3>اختر وجهة من خطوط الحافلات</h3>
+    <table id="destination-table">
+      <thead>
+        <tr>
+          <th>الوجهة</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script> <script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <script>
     var map = L.map('map').setView([31.9, 35.2], 9);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -159,7 +230,6 @@
       maxZoom: 20
     }).addTo(map);
 
-    // دالة لإنشاء أيقونات مخصصة لكل محافظة
     function createBusIconForProvince(provinceName) {
       let colorClass = '';
       switch (provinceName) {
@@ -174,12 +244,12 @@
         case 'قلقيلية': colorClass = 'icon-qalqilya'; break;
         case 'طولكرم': colorClass = 'icon-tulkarm'; break;
         case 'سلفيت': colorClass = 'icon-salfit'; break;
-        default: colorClass = 'icon-default'; // لون افتراضي
+        default: colorClass = 'icon-default';
       }
 
       return L.divIcon({
         className: 'bus-marker-custom ' + colorClass,
-        html: '🚌', // رمز الحافلة
+        html: '🚌',
         iconSize: [30, 30],
         iconAnchor: [15, 30],
         popupAnchor: [0, -30]
@@ -203,6 +273,7 @@
     var userLocationMarker = null;
     var userCoordinates = null;
     var routingControl = null;
+    var allBusDestinations = new Set(); // لتخزين الوجهات الفريدة
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
@@ -260,11 +331,15 @@
           exBusDictByID[id] = [];
         }
         exBusDictByID[id].push(item);
+
+        // جمع الوجهات الفريدة
+        if (item["نهاية الخط - مدينة"] && item["نهاية الخط - مدينة"].trim() !== "") {
+          allBusDestinations.add(item["نهاية الخط - مدينة"].trim());
+        }
       });
 
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => {
-          // استخدام اسم المحافظة لإنشاء الأيقونة
           const provinceName = feature.properties["المحافظة"];
           const busIcon = createBusIconForProvince(provinceName);
           return L.marker(latlng, {icon: busIcon});
@@ -276,7 +351,6 @@
           let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
 
           if (exDataArray.length > 0) {
-            // تجميع الوجهات حسب المدينة النهائية
             let destinationsByEndCity = {};
             exDataArray.forEach((exData) => {
               const endCity = exData['نهاية الخط - مدينة'] || 'غير محدد';
@@ -286,7 +360,6 @@
               destinationsByEndCity[endCity].push(exData);
             });
 
-            // عرض الوجهات مرتبة
             for (const endCity in destinationsByEndCity) {
               popupContent += `<h4 style="margin-top:10px; margin-bottom:5px;">وجهة إلى: ${endCity}</h4>`;
               destinationsByEndCity[endCity].forEach((exData) => {
@@ -384,6 +457,43 @@
         .openOn(map);
     }
 
+    // وظيفة لملء جدول الوجهات
+    function populateDestinationTable() {
+      const tbody = document.querySelector('#destination-table tbody');
+      tbody.innerHTML = ''; // مسح المحتوى القديم
+
+      // تحويل Set إلى Array لفرز الوجهات أبجدياً
+      const sortedDestinations = Array.from(allBusDestinations).sort();
+
+      sortedDestinations.forEach(destination => {
+        const row = tbody.insertRow();
+        row.className = 'destination-item';
+        row.onclick = () => selectDestination(destination);
+        const cell = row.insertCell();
+        cell.textContent = destination;
+      });
+    }
+
+    // وظيفة عند اختيار وجهة من الجدول
+    function selectDestination(destination) {
+      document.getElementById('destination-table-container').style.display = 'none'; // إخفاء الجدول
+      document.getElementById('manual-destination-input-container').style.display = 'flex'; // إظهار حقل الإدخال اليدوي وزر الاتجاهات
+      document.getElementById('destination-input').value = destination; // وضع الوجهة المختارة في حقل الإدخال
+      // يمكن هنا استدعاء get-directions-btn.click() مباشرة إذا أردت بدء التوجيه فوراً
+      // document.getElementById('get-directions-btn').click();
+    }
+
+    // حدث النقر على أيقونة تحديد الوجهة
+    document.getElementById('set-destination-icon').addEventListener('click', function() {
+      const destinationTableContainer = document.getElementById('destination-table-container');
+      if (destinationTableContainer.style.display === 'none') {
+        populateDestinationTable(); // ملء الجدول قبل إظهاره
+        destinationTableContainer.style.display = 'block';
+      } else {
+        destinationTableContainer.style.display = 'none';
+      }
+    });
+
     document.getElementById('get-directions-btn').addEventListener('click', function() {
       const destination = document.getElementById('destination-input').value.trim();
 
@@ -401,12 +511,11 @@
         map.removeControl(routingControl);
       }
 
-      // إضافة خدمة Nominatim للبحث عن العناوين بواسطة النص
       var geocoder = L.Control.Geocoder.nominatim();
 
       geocoder.geocode(destination, function(results) {
         if (results && results.length > 0) {
-          const destinationLatLng = results[0].center; // استخدام أول نتيجة
+          const destinationLatLng = results[0].center;
           routingControl = L.Routing.control({
             waypoints: [
               L.latLng(userCoordinates[0], userCoordinates[1]),
@@ -421,7 +530,7 @@
             lineOptions: {
               styles: [{color: 'blue', weight: 6, opacity: 0.6}]
             },
-            collapsible: true // لجعل لوحة التحكم بالمسار قابلة للطي
+            collapsible: true
           }).addTo(map);
 
           routingControl.on('routesfound', function(e) {
