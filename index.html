@@ -274,9 +274,8 @@
     var userCoordinates = null;
     var routingControl = null;
     var allBusDestinations = new Set(); // لتخزين الوجهات الفريدة
-
-    // متغير عام لتخزين طبقة community.geojson
     var communityGeoJsonLayer = null;
+    var destinationMarker; // متغير لتخزين علامة نقطة النهاية
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
@@ -530,11 +529,19 @@
         return;
       }
 
+      // إزالة التحكم في التوجيه الحالي إذا كان موجوداً
       if (routingControl) {
         map.removeControl(routingControl);
         routingControl = null;
       }
 
+      // إزالة علامة نقطة النهاية السابقة إذا كانت موجودة
+      if (destinationMarker) {
+        map.removeLayer(destinationMarker);
+        destinationMarker = null;
+      }
+
+      // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
       if (communityGeoJsonLayer) {
         communityGeoJsonLayer.eachLayer(function(layer) {
           layer.setStyle({
@@ -549,57 +556,105 @@
 
       var geocoder = L.Control.Geocoder.nominatim();
 
-      geocoder.geocode(destination, function(results) {
-        if (results && results.length > 0) {
-          const destinationLatLng = results[0].center;
-
-          if (communityGeoJsonLayer) {
-            communityGeoJsonLayer.eachLayer(function(layer) {
-              if (layer.feature && layer.feature.properties &&
-                  layer.feature.properties.CommunityN &&
-                  layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
-                layer.setStyle({
-                  color: 'red',
-                  weight: 5,
-                  opacity: 0.8,
-                  fillOpacity: 0.3,
-                  fillColor: 'red'
-                });
-              }
+      // محاولة البحث عن الوجهة أولاً كاسم مجتمع (CommunityN)
+      let communityFound = false;
+      let communityCenter = null;
+      if (communityGeoJsonLayer) {
+        communityGeoJsonLayer.eachLayer(function(layer) {
+          if (layer.feature && layer.feature.properties &&
+              layer.feature.properties.CommunityN &&
+              layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
+            communityFound = true;
+            layer.setStyle({
+              color: 'red',          // لون خط التحديد
+              weight: 5,             // سماكة خط التحديد
+              opacity: 0.8,          // شفافية خط التحديد
+              fillOpacity: 0.3,      // شفافية تعبئة المنطقة
+              fillColor: 'red'       // لون تعبئة المنطقة
             });
+            // الحصول على مركز المنطقة لوضع علامة النهاية
+            const bounds = layer.getBounds();
+            communityCenter = bounds.getCenter();
+
+            // إضافة علامة في مركز منطقة المجتمع
+            destinationMarker = L.marker(communityCenter).addTo(map).bindPopup(`نقطة النهاية: ${layer.feature.properties.CommunityN}`).openPopup();
+            map.setView(communityCenter, 14); // يمكنك تعديل مستوى التكبير هنا
+            return; // توقف بعد العثور على أول تطابق
           }
+        });
+      }
 
-          routingControl = L.Routing.control({
-            waypoints: [
-              L.latLng(userCoordinates[0], userCoordinates[1]),
-              destinationLatLng
-            ],
-            router: L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1'
-            }),
-            routeWhileDragging: true,
-            language: 'ar',
-            showAlternatives: false,
-            lineOptions: {
-              styles: [{color: 'blue', weight: 6, opacity: 0.6}]
-            },
-            collapsible: true
-          }).addTo(map);
+      // إذا لم يتم العثور على الوجهة كاسم مجتمع، استخدم خدمة Geocoder العامة
+      if (!communityFound) {
+        geocoder.geocode(destination, function(results) {
+          if (results && results.length > 0) {
+            const destinationLatLng = results[0].center;
+            
+            // إضافة علامة في الوجهة المحددة بواسطة Geocoder
+            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
+            map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
 
-          routingControl.on('routesfound', function(e) {
-              var routes = e.routes;
-              var summary = routes[0].summary;
-              alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
-          });
+            routingControl = L.Routing.control({
+              waypoints: [
+                L.latLng(userCoordinates[0], userCoordinates[1]),
+                destinationLatLng
+              ],
+              router: L.Routing.osrmv1({
+                  serviceUrl: 'https://router.project-osrm.org/route/v1'
+              }),
+              routeWhileDragging: true,
+              language: 'ar',
+              showAlternatives: false,
+              lineOptions: {
+                styles: [{color: 'red', weight: 6, opacity: 0.8}] // تعيين لون المسار إلى الأحمر
+              },
+              collapsible: true
+            }).addTo(map);
 
-          routingControl.on('routingerror', function(e) {
-              alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
-              console.error("Routing error:", e.error);
-          });
-        } else {
-          alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
-        }
-      });
+            routingControl.on('routesfound', function(e) {
+                var routes = e.routes;
+                var summary = routes[0].summary;
+                alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
+            });
+
+            routingControl.on('routingerror', function(e) {
+                alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
+                console.error("Routing error:", e.error);
+            });
+          } else {
+            alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
+          }
+        });
+      } else { // إذا تم العثور على الوجهة كاسم مجتمع
+        // استخدم مركز المجتمع كنقطة نهاية للمسار
+        routingControl = L.Routing.control({
+          waypoints: [
+            L.latLng(userCoordinates[0], userCoordinates[1]),
+            communityCenter
+          ],
+          router: L.Routing.osrmv1({
+              serviceUrl: 'https://router.project-osrm.org/route/v1'
+          }),
+          routeWhileDragging: true,
+          language: 'ar',
+          showAlternatives: false,
+          lineOptions: {
+            styles: [{color: 'red', weight: 6, opacity: 0.8}] // تعيين لون المسار إلى الأحمر
+          },
+          collapsible: true
+        }).addTo(map);
+
+        routingControl.on('routesfound', function(e) {
+            var routes = e.routes;
+            var summary = routes[0].summary;
+            alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
+        });
+
+        routingControl.on('routingerror', function(e) {
+            alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
+            console.error("Routing error:", e.error);
+        });
+      }
     });
   </script>
 </body>
