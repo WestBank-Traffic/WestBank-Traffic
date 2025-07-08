@@ -232,10 +232,8 @@
     }).addTo(map);
 
     function createBusIconForProvince(provinceName) {
-      // تم إزالة logic تحديد اللون بناءً على المحافظة
-      // لأننا نريد كل الباصات باللون البرتقالي
       return L.divIcon({
-        className: 'bus-marker-custom', // استخدام الفئة التي تحتوي على اللون البرتقالي
+        className: 'bus-marker-custom',
         html: '🚌',
         iconSize: [30, 30],
         iconAnchor: [15, 30],
@@ -244,14 +242,14 @@
     }
 
     var openCheckpointIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg', // هذا هو لوغو المفتوح
-      iconSize: [20, 20], // تم تصغير الحجم
-      iconAnchor: [10, 20], // تعديل نقطة الارتكاز لتناسب الحجم الجديد
-      popupAnchor: [0, -20] // تعديل نقطة ظهور الـ popup
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
     });
 
     var closedCheckpointIcon = L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg', // هذا هو لوغو المغلق
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
       iconSize: [30, 30],
       iconAnchor: [15, 30],
       popupAnchor: [0, -30]
@@ -260,14 +258,15 @@
     var userLocationMarker = null;
     var userCoordinates = null;
     var routingControl = null;
-    var allBusDestinations = new Set(); // لتخزين الوجهات الفريدة
+    var allBusDestinations = new Set();
     var communityGeoJsonLayer = null;
-    var destinationMarker; // متغير لتخزين علامة نقطة النهاية
+    var destinationMarker;
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           userCoordinates = [position.coords.latitude, position.coords.longitude];
+          console.log("User location obtained:", userCoordinates); // Debugging
 
           if (userLocationMarker) {
             userLocationMarker.setLatLng(userCoordinates);
@@ -277,11 +276,11 @@
 
           map.setView(userCoordinates, 13);
         }, function(error) {
-          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
-          console.error("Error getting location:", error);
+          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع في متصفحك والسماح للتطبيق بالوصول إليه.");
+          console.error("Error getting location:", error); // Debugging
         });
       } else {
-        alert("لم يتمكن المتصفح من الحصول على موقعك.");
+        alert("متصفحك لا يدعم تحديد الموقع الجغرافي.");
       }
     });
 
@@ -356,7 +355,6 @@
       "حاجز تياسير": "مغلق"
     };
 
-
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
@@ -380,7 +378,7 @@
       L.geoJSON(busData, {
         pointToLayer: (feature, latlng) => {
           const provinceName = feature.properties["المحافظة"];
-          const busIcon = createBusIconForProvince(provinceName); // سيتم استخدام الأيقونة البرتقالية
+          const busIcon = createBusIconForProvince(provinceName);
           return L.marker(latlng, {icon: busIcon});
         },
         onEachFeature: (feature, layer) => {
@@ -423,9 +421,7 @@
         var id = feature.properties.ID;
         var name = feature.properties.name_ar;
 
-        // استخدم حالة الحاجز من القائمة المحدثة
         var status = checkpointStatus[name] || "غير معروف";
-        // التحقق من كلمة "مغلق" لتحديد الأيقونة
         var icon = status.includes("مغلق") ? closedCheckpointIcon : openCheckpointIcon;
 
         L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
@@ -443,7 +439,7 @@
       L.geoJSON(roadData, {
         style: function() {
           return {
-            color: '#D3D3D3', // لون رمادي فاتح للطرق
+            color: '#D3D3D3',
             weight: 2,
             opacity: 0.7,
           };
@@ -482,19 +478,8 @@
     });
 
     window.updateCheckpoint = function(id) {
-      // هذه الدالة ستقوم بتحديث حالة الحاجز في الذاكرة المؤقتة (checkpointStatus)
-      // ولن تحفظ التغييرات بشكل دائم عبر تحديث الصفحة ما لم يكن هناك backend
       var selectElement = document.getElementById(`select-${id}`);
       var newStatus = selectElement.value;
-
-      // لتحديث حالة الحاجز في الـ checkpointStatus وكيفية عرضها على الخريطة
-      // ستحتاج إلى الوصول إلى اسم الحاجز من الـ ID أو تمريره كمعامل
-      // ثم تحديث الـ popup والأيقونة.
-      // كمثال، إذا كان اسم الحاجز هو 'name_ar' من الـ GeoJSON:
-      // var checkpointName = "..."; // يجب الحصول على اسم الحاجز هنا
-      // checkpointStatus[checkpointName] = newStatus;
-      // alert(`تم تحديث حالة الحاجز ${checkpointName} إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت.`);
-
       alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
     };
 
@@ -570,6 +555,7 @@
 
     document.getElementById('get-directions-btn').addEventListener('click', function() {
       const destination = document.getElementById('destination-input').value.trim();
+      console.log("Get Directions clicked. Destination:", destination); // Debugging
 
       if (!destination) {
         alert("الرجاء إدخال الوجهة.");
@@ -577,7 +563,7 @@
       }
 
       if (!userCoordinates) {
-        alert("الرجاء تحديد موقعك الحالي أولاً باستخدام زر الموقع.");
+        alert("الرجاء تحديد موقعك الحالي أولاً باستخدام زر الموقع (📍) في الزاوية العلوية اليسرى.");
         return;
       }
 
@@ -585,12 +571,14 @@
       if (routingControl) {
         map.removeControl(routingControl);
         routingControl = null;
+        console.log("Previous routing control removed."); // Debugging
       }
 
       // إزالة علامة نقطة النهاية السابقة إذا كانت موجودة
       if (destinationMarker) {
         map.removeLayer(destinationMarker);
         destinationMarker = null;
+        console.log("Previous destination marker removed."); // Debugging
       }
 
       // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
@@ -604,14 +592,14 @@
             fillColor: 'transparent'
           });
         });
+        console.log("Community layer styles reset."); // Debugging
       }
 
       var geocoder = L.Control.Geocoder.nominatim();
+      let destinationLatLng = null;
 
       // محاولة البحث عن الوجهة أولاً كاسم مجتمع (CommunityN)
       let communityFound = false;
-      let destinationLatLng = null; // ستخزن إحداثيات الوجهة النهائية (سواء من CommunityN أو Geocoder)
-      
       if (communityGeoJsonLayer) {
         communityGeoJsonLayer.eachLayer(function(layer) {
           if (layer.feature && layer.feature.properties &&
@@ -619,48 +607,54 @@
               layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
             communityFound = true;
             layer.setStyle({
-              color: 'red',          // لون خط التحديد
-              weight: 5,             // سماكة خط التحديد
-              opacity: 0.8,          // شفافية خط التحديد
-              fillOpacity: 0.3,      // شفافية تعبئة المنطقة
-              fillColor: 'red'       // لون تعبئة المنطقة
+              color: 'red',
+              weight: 5,
+              opacity: 0.8,
+              fillOpacity: 0.3,
+              fillColor: 'red'
             });
-            // الحصول على مركز المنطقة لوضع علامة النهاية
             const bounds = layer.getBounds();
             destinationLatLng = bounds.getCenter();
-
-            // إضافة علامة في مركز منطقة المجتمع
-            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${layer.feature.properties.CommunityN}`).openPopup();
-            map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
-            return; // توقف بعد العثور على أول تطابق
+            console.log("Destination found in communities:", destinationLatLng); // Debugging
+            return;
           }
         });
       }
 
       // إذا لم يتم العثور على الوجهة كاسم مجتمع، استخدم خدمة Geocoder العامة
       if (!communityFound) {
+        console.log("Destination not found in communities, trying Nominatim Geocoder..."); // Debugging
         geocoder.geocode(destination, function(results) {
           if (results && results.length > 0) {
             destinationLatLng = results[0].center;
-            
-            // إضافة علامة في الوجهة المحددة بواسطة Geocoder
+            console.log("Destination found via Geocoder:", destinationLatLng); // Debugging
+
             destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
-            map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
+            map.setView(destinationLatLng, 14);
 
-            // الآن بعد تحديد destinationLatLng، قم بإنشاء التحكم في التوجيه
             initiateRouting(destinationLatLng);
-
           } else {
-            alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
+            alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال أو استخدام اسم مجتمع معروف.');
+            console.warn('Geocoder did not find results for:', destination); // Debugging
           }
         });
       } else { // إذا تم العثور على الوجهة كاسم مجتمع
-        // استخدم مركز المجتمع كنقطة نهاية للمسار الذي تم تحديده مسبقًا
+        console.log("Destination found in communities, initiating routing..."); // Debugging
+        destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${destination}`).openPopup(); // إضافة علامة للوجهة
+        map.setView(destinationLatLng, 14);
         initiateRouting(destinationLatLng);
       }
     });
 
     function initiateRouting(destinationCoordinates) {
+        if (!userCoordinates || !destinationCoordinates) {
+            console.error("Cannot initiate routing: user or destination coordinates are missing.");
+            alert("لا يمكن رسم المسار. تأكد من تحديد موقعك الحالي والوجهة بشكل صحيح.");
+            return;
+        }
+
+        console.log("Initiating routing from", userCoordinates, "to", destinationCoordinates); // Debugging
+
         routingControl = L.Routing.control({
           waypoints: [
             L.latLng(userCoordinates[0], userCoordinates[1]),
@@ -673,7 +667,7 @@
           language: 'ar',
           showAlternatives: false,
           lineOptions: {
-            styles: [{color: 'red', weight: 6, opacity: 0.8}] // تعيين لون المسار إلى الأحمر
+            styles: [{color: 'red', weight: 6, opacity: 0.8}]
           },
           collapsible: true
         }).addTo(map);
@@ -682,11 +676,12 @@
             var routes = e.routes;
             var summary = routes[0].summary;
             alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
+            console.log("Route found:", summary); // Debugging
         });
 
         routingControl.on('routingerror', function(e) {
             alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
-            console.error("Routing error:", e.error);
+            console.error("Routing error:", e.error); // Debugging
         });
     }
   </script>
