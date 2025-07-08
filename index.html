@@ -38,6 +38,62 @@
       width: 100%;
       padding-bottom: 5px;
     }
+    #manual-destination-input-container { /* Ensure this is always visible if you want manual input */
+        width: 90%;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 10px;
+    }
+    #manual-destination-input-container input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    }
+    .popup-destination {
+      padding: 8px 15px;
+      margin-bottom: 8px;
+      border-radius: 15px;
+      cursor: pointer;
+      background-color: #ffd8b1;
+      border: 1.5px solid #ff9800;
+      font-weight: 600;
+      font-size: 17px;
+      color: #e65100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.25s ease;
+      user-select: none;
+    }
+    .popup-destination:hover {
+      background-color: #ffb366;
+      color: white;
+      border-color: #ef6c00;
+    }
+    .leaflet-popup-content {
+      text-align: right;
+    }
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 5px;
+    }
     .location-icon {
       background-color: #ff9800;
       border-radius: 50%;
@@ -50,13 +106,106 @@
       left: 10px;
       z-index: 1001;
     }
+    /* أنماط أيقونات المحافظات - سيتم تجاوز لون الخلفية للباصات بواسطة .bus-marker-custom */
+    .icon-ramallah { background-color: #FF5733; }
+    .icon-nablus { background-color: #33FF57; }
+    .icon-jenin { background-color: #3357FF; }
+    .icon-hebron { background-color: #FF33F5; }
+    .icon-bethlehem { background-color: #FFBD33; }
+    .icon-jericho { background-color: #33FFF5; }
+    .icon-tubas { background-color: #A833FF; }
+    .icon-qalqilya { background-color: #FF338A; }
+    .icon-tulkarm { background-color: #33FFBD; }
+    .icon-salfit { background-color: #D4FF33; }
+    .icon-jerusalem { background-color: #8A33FF; }
+    .bus-marker-custom {
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      border: 2px solid #FFF;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      background-color: #FFA500; /* لون الباصات البرتقالي */
+    }
+
+    /* أنماط جديدة لأيقونة تحديد الوجهة وجدول الوجهات */
+    #set-destination-icon {
+      position: absolute;
+      top: 10%; /* نفس مكان زر الموقع */
+      left: 60px; /* بجانب زر الموقع */
+      background-color: #1976d2; /* لون أزرق */
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px; /* لضبط الحجم */
+      height: 40px; /* لضبط الحجم */
+      box-sizing: border-box;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #destination-table-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1002;
+      padding: 15px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: none; /* مخفي افتراضياً */
+      width: 250px; /* عرض ثابت للجدول */
+      direction: rtl; /* لضمان عرض المحتوى من اليمين لليسار */
+    }
+    #destination-table-container h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    #destination-table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #destination-table-container th,
+    #destination-table-container td {
+      border: 1px solid #eee;
+      padding: 8px;
+      text-align: right;
+    }
+    #destination-table-container th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .destination-item {
+      cursor: pointer;
+      background-color: #e9f5ff;
+      transition: background-color 0.2s ease;
+    }
+    .destination-item:hover {
+      background-color: #cce7ff;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="control-box">
     <div class="leaflet-control-title">تطبيق الهاتف النقال في تحليل المسارات البديلة</div>
-    <div id="manual-destination-input-container" style="display: none; width: 90%; flex-direction: column; align-items: center; margin-top: 10px;">
+    <div id="manual-destination-input-container" style="display: flex; width: 90%; flex-direction: column; align-items: center; margin-top: 10px;">
       <input type="text" id="destination-input" placeholder="أدخل الوجهة هنا (مثال: رام الله)" />
       <button id="get-directions-btn">الحصول على الاتجاهات</button>
     </div>
@@ -66,141 +215,496 @@
     📍
   </div>
 
+  <div id="set-destination-icon" title="حدد الوجهة من خطوط الحافلات">
+    🎯
+  </div>
+
+  <div id="destination-table-container">
+    <h3>اختر وجهة من خطوط الحافلات</h3>
+    <table id="destination-table">
+      <thead>
+        <tr>
+          <th>الوجهة</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/graphlib/2.1.1/graphlib.min.js"></script>
 
   <script>
     var map = L.map('map').setView([31.9, 35.2], 9);
-    var userCoordinates = null;
-    var routingControl = null;
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 20
     }).addTo(map);
 
+    function createBusIconForProvince(provinceName) {
+      return L.divIcon({
+        className: 'bus-marker-custom',
+        html: '🚌',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      });
+    }
+
+    var openCheckpointIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
+    });
+
+    var closedCheckpointIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
     var userLocationMarker = null;
+    var userCoordinates = null;
+    var routingControl = null;
+    var allBusDestinations = new Set();
+    var communityGeoJsonLayer = null;
+    var destinationMarker;
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           userCoordinates = [position.coords.latitude, position.coords.longitude];
+          console.log("User location obtained:", userCoordinates); // Debugging
+
           if (userLocationMarker) {
             userLocationMarker.setLatLng(userCoordinates);
           } else {
             userLocationMarker = L.marker(userCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
           }
+
           map.setView(userCoordinates, 13);
         }, function(error) {
-          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
-          console.error("Error getting location:", error);
+          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع في متصفحك والسماح للتطبيق بالوصول إليه.");
+          console.error("Error getting location:", error); // Debugging
         });
       } else {
-        alert("لم يتمكن المتصفح من الحصول على موقعك.");
+        alert("متصفحك لا يدعم تحديد الموقع الجغرافي.");
       }
     });
 
-    // خوارزمية Dijkstra
-    function dijkstra(graph, start, end) {
-      let distances = {};
-      let previous = {};
-      let nodes = new Set();
+    // تحديث حالات الحواجز بناءً على البيانات المقدمة
+    var checkpointStatus = {
+      // حواجز منطقة الوسط
+      "المدخل الشمالي لمدينة البيرة": "أزمة وتفتيش للخارج، للداخل سالك",
+      "بوابات عطارة البلد": "سالكة",
+      "مدخل روابي": "سالكة",
+      "عين سينيا": "سالكة",
+      "طريق الجلزون": "مغلق", // تم إضافتها بناءً على التحديث السابق
+      "عيون الحرامية": "سالكة",
+      "بوابة النبي صالح": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "سلواد يبرود": "سالكة",
+      "بوابة عابود": "سالكة",
+      "سنجل": "سالكة",
+      "ترمسعيا": "سالكة",
+      "مداخل ومخارج أريحا": "سالكة",
+      "كفر عقب": "سالكة",
+      "قلنديا": "سالكة",
+      "جبع": "سالكة",
+      "حزما": "سالكة",
+      "عناتا": "سالكة",
+      "زعيم": "سالكة",
+      "العيزرية": "سالكة",
 
-      graph.nodes().forEach(function(node) {
-        distances[node] = Infinity;
-        previous[node] = null;
-        nodes.add(node);
+      // حواجز محافظات الجنوب
+      "حاجز الكونتينر": "سالكة",
+      "عش غراب": "سالكة",
+      "حاجز النشاش": "سالكة",
+      "ترقوميا المصانع": "مفتوح (لكن به أزمة وتفتيش للخارج)", // تم إضافتها بناءً على التحديث السابق
+      "دوار تقوع": "سالكة",
+      "كرمة": "سالكة",
+      "زيف": "سالكة", // تم إضافتها بناءً على التحديث السابق
+      "بوابة الفحص": "سالكة",
+      "فرش الهوى": "سالكة",
+      "رأس الجورة": "مغلقة",
+      "بوابة إذنا": "مغلقة",
+      "النبي يونس": "سالكة",
+      "سعير": "سالكة",
+      "بوابات العروب": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "دورا": "مغلقة",
+      "الفوار": "مغلقة",
+      "المنشية": "مغلقة",
+      "جورة الشمعة": "مغلقة",
+
+      // حواجز محافظات الشمال
+      "المدخل الشمالي لسلفيت": "سالكة",
+      "بروقين": "مغلقة",
+      "بوابة كفر الديك": "مغلقة",
+      "بوابة جماعين": "مغلقة",
+      "مدخل اللبن الشرقية": "مغلقة",
+      "سيلة الظهر": "سالكة",
+      "مدخل الساوية": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "قبلان": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "واد قانا": "سالكة",
+      "مفترق جيت": "سالكة",
+      "زعترة": "سالكة",
+      "بوابة يتما": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "يتسهار": "سالكة",
+      "حوارة البلد": "سالكة",
+      "بوابة بورين": "سالكة",
+      "عورتا": "أزمة بالاتجاهين",
+      "بيت فوريك": "أزمة للداخل",
+      "مدخل قلقيلية": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "حجة الفندق": "سالكة",
+      "طريق الـ17": "سالكة",
+      "مدخل قراوة": "مفتوح", // تم إضافتها بناءً على التحديث السابق
+      "المربعة": "سالكة",
+      "دير شرف": "سالكة",
+      "عنبتا": "مغلقة",
+      "بزاريا": "سالكة",
+      "حاجز صرة": "سالكة",
+      "حاجز الحمرا": "كثافة سير باتجاه أريحا",
+      "حاجز تياسير": "مغلق" // تم إضافتها بناءً على التحديث السابق
+    };
+
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/EX_BusWB.json').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/checkpoint.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/community.geojson').then(r => r.json())
+    ]).then(([busData, exBusData, checkpointData, roadData, communityData]) => {
+      let exBusDictByID = {};
+      exBusData.forEach(item => {
+        let id = item["ID_CODE"];
+        if (!exBusDictByID[id]) {
+          exBusDictByID[id] = [];
+        }
+        exBusDictByID[id].push(item);
+
+        if (item["نهاية الخط - مدينة"] && item["نهاية الخط - مدينة"].trim() !== "") {
+          allBusDestinations.add(item["نهاية الخط - مدينة"].trim());
+        }
       });
-      distances[start] = 0;
 
-      while (nodes.size > 0) {
-        let closestNode = null;
-        nodes.forEach(function(node) {
-          if (closestNode === null || distances[node] < distances[closestNode]) {
-            closestNode = node;
+      L.geoJSON(busData, {
+        pointToLayer: (feature, latlng) => {
+          const provinceName = feature.properties["المحافظة"];
+          const busIcon = createBusIconForProvince(provinceName);
+          return L.marker(latlng, {icon: busIcon});
+        },
+        onEachFeature: (feature, layer) => {
+          let idCode = feature.properties["ID_CODE"];
+          let exDataArray = exBusDictByID[idCode] || [];
+
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
+
+          if (exDataArray.length > 0) {
+            let destinationsByEndCity = {};
+            exDataArray.forEach((exData) => {
+              const endCity = exData['نهاية الخط - مدينة'] || 'غير محدد';
+              if (!destinationsByEndCity[endCity]) {
+                destinationsByEndCity[endCity] = [];
+              }
+              destinationsByEndCity[endCity].push(exData);
+            });
+
+            for (const endCity in destinationsByEndCity) {
+              popupContent += `<h4 style="margin-top:10px; margin-bottom:5px;">وجهة إلى: ${endCity}</h4>`;
+              destinationsByEndCity[endCity].forEach((exData) => {
+                const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== ""
+                  ? exData['اجرة المواصلات بالحافلات العمومي']
+                  : 'غير متوفرة';
+
+                popupContent += `<div class="popup-destination" onclick="showDetails('${exData['بداية الخط - محافظة']}', '${exData['بداية الخط - مدينة']}', '${exData['نهاية الخط - مدينة']}', '${fare}', '${exData['حالة الخط']}', '${exData['مسار الخط ذهاب و اياب']}')">` +
+                  `من ${exData["بداية الخط - مدينة"] || "-"} إلى ${exData["نهاية الخط - مدينة"] || "-"} ` +
+                  `</div>`;
+              });
+            }
+          } else {
+            popupContent += `<i>لا توجد بيانات إضافية عن مسارات الحافلات من هذه المحطة.</i>`;
           }
-        });
 
-        if (distances[closestNode] === Infinity) break;
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
 
-        nodes.delete(closestNode);
+      checkpointData.features.forEach(feature => {
+        var id = feature.properties.ID;
+        var name = feature.properties.name_ar;
 
-        let neighbors = graph.neighbors(closestNode);
-        neighbors.forEach(function(neighbor) {
-          let alt = distances[closestNode] + graph.edge(closestNode, neighbor).weight;
-          if (alt < distances[neighbor]) {
-            distances[neighbor] = alt;
-            previous[neighbor] = closestNode;
+        var status = checkpointStatus[name] || "غير معروف";
+        var icon = status.includes("مغلقة") ? closedCheckpointIcon : openCheckpointIcon; // تحديث الشرط ليشمل "مغلقة"
+
+        L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
+          .addTo(map)
+          .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
+            <b>الحالة:</b> ${status}<br/>
+            <label>اختر الحالة:</label>
+            <select id="select-${id}">
+              <option value="سالكة" ${status.includes("سالكة") ? "selected" : ""}>سالكة</option>
+              <option value="مغلقة" ${status.includes("مغلقة") ? "selected" : ""}>مغلقة</option>
+              <option value="أزمة" ${status.includes("أزمة") ? "selected" : ""}>أزمة</option>
+              <option value="كثافة سير" ${status.includes("كثافة سير") ? "selected" : ""}>كثافة سير</option>
+              <option value="أزمة وتفتيش" ${status.includes("أزمة وتفتيش") ? "selected" : ""}>أزمة وتفتيش</option>
+            </select>
+            <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
+      });
+
+      L.geoJSON(roadData, {
+        style: function() {
+          return {
+            color: '#D3D3D3',
+            weight: 2,
+            opacity: 0.7,
+          };
+        }
+      }).addTo(map);
+
+      communityGeoJsonLayer = L.geoJSON(communityData, {
+        style: function(feature) {
+          return {
+            color: '#8B008B',
+            weight: 0.5,
+            opacity: 0.05,
+            fillOpacity: 0,
+            fillColor: 'transparent'
+          };
+        },
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.CommunityN) {
+            layer.bindPopup(`<b>المجتمع:</b> ${feature.properties.CommunityN}`);
+          } else {
+            let popupContent = '<b>معلومات المجتمع:</b><br>';
+            for (let key in feature.properties) {
+              popupContent += `${key}: ${feature.properties[key]}<br>`;
+            }
+            if (Object.keys(feature.properties).length === 0) {
+              popupContent += 'لا توجد خصائص إضافية.';
+            }
+            layer.bindPopup(popupContent);
           }
-        });
-      }
+        }
+      }).addTo(map);
 
-      // بناء المسار
-      let path = [];
-      let currentNode = end;
-      while (currentNode) {
-        path.unshift(currentNode);
-        currentNode = previous[currentNode];
-      }
+    }).catch(err => {
+      console.error('خطأ في تحميل البيانات أو معالجتها:', err);
+      alert('حدث خطأ أثناء تحميل البيانات، تأكد من الروابط.');
+    });
 
-      return path;
+    window.updateCheckpoint = function(id) {
+      var selectElement = document.getElementById(`select-${id}`);
+      var newStatus = selectElement.value;
+      alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
+    };
+
+    function showDetails(province, startCity, endCity, fare, lineStatus, route) {
+      const tableHTML = `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h3 style="text-align: center; font-size: 20px;">تفاصيل الرحلة</h3>
+          <table style="width: 100%; text-align: right; border-collapse: collapse; margin-top: 15px;">
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">المحافظة</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${province}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مدينة البداية</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${startCity}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مدينة النهاية</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${endCity}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">أجرة المواصلات</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${fare}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">حالة الخط</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${lineStatus}</td>
+            </tr>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px;">مسار الخط</th>
+              <td style="border: 1px solid #ddd; padding: 8px;">${route}</td>
+            </tr>
+          </table>
+        </div>
+      `;
+
+      var popup = L.popup()
+        .setLatLng(map.getCenter())
+        .setContent(tableHTML)
+        .openOn(map);
     }
 
-    // تحميل بيانات شبكة الطرق (GeoJSON)
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson')
-      .then(response => response.json())
-      .then(data => {
-        var graph = new graphlib.Graph();
-        data.features.forEach(function(feature) {
-          var id = feature.properties.name;
-          var coordinates = feature.geometry.coordinates;
+    function populateDestinationTable() {
+      const tbody = document.querySelector('#destination-table tbody');
+      tbody.innerHTML = '';
 
-          // إضافة النقاط إلى الرسم البياني
-          graph.setNode(id, { lat: coordinates[0], lon: coordinates[1] });
+      const sortedDestinations = Array.from(allBusDestinations).sort();
 
-          // إضافة الحواف بين النقاط
-          if (feature.geometry.type === "LineString") {
-            for (let i = 0; i < coordinates.length - 1; i++) {
-              var from = coordinates[i];
-              var to = coordinates[i + 1];
-              graph.setEdge(from.toString(), to.toString(), { weight: 1 });
-            }
-          }
+      sortedDestinations.forEach(destination => {
+        const row = tbody.insertRow();
+        row.className = 'destination-item';
+        row.onclick = () => selectDestination(destination);
+        const cell = row.insertCell();
+        cell.textContent = destination;
+      });
+    }
+
+    function selectDestination(destination) {
+      document.getElementById('destination-table-container').style.display = 'none';
+      // Manual input container should ideally be always displayed if that's the primary way
+      // document.getElementById('manual-destination-input-container').style.display = 'flex';
+      document.getElementById('destination-input').value = destination;
+    }
+
+    document.getElementById('set-destination-icon').addEventListener('click', function() {
+      const destinationTableContainer = document.getElementById('destination-table-container');
+      if (destinationTableContainer.style.display === 'none') {
+        populateDestinationTable();
+        destinationTableContainer.style.display = 'block';
+      } else {
+        destinationTableContainer.style.display = 'none';
+      }
+    });
+
+    document.getElementById('get-directions-btn').addEventListener('click', function() {
+      const destination = document.getElementById('destination-input').value.trim();
+      console.log("Get Directions clicked. Destination:", destination); // Debugging
+
+      if (!destination) {
+        alert("الرجاء إدخال الوجهة.");
+        return;
+      }
+
+      if (!userCoordinates) {
+        alert("الرجاء تحديد موقعك الحالي أولاً باستخدام زر الموقع (📍) في الزاوية العلوية اليسرى.");
+        return;
+      }
+
+      // إزالة التحكم في التوجيه الحالي إذا كان موجوداً
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+        console.log("Previous routing control removed."); // Debugging
+      }
+
+      // إزالة علامة نقطة النهاية السابقة إذا كانت موجودة
+      if (destinationMarker) {
+        map.removeLayer(destinationMarker);
+        destinationMarker = null;
+        console.log("Previous destination marker removed."); // Debugging
+      }
+
+      // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
+      if (communityGeoJsonLayer) {
+        communityGeoJsonLayer.eachLayer(function(layer) {
+          layer.setStyle({
+            color: '#8B008B',
+            weight: 0.5,
+            opacity: 0.05,
+            fillOpacity: 0,
+            fillColor: 'transparent'
+          });
         });
+        console.log("Community layer styles reset."); // Debugging
+      }
 
-        // بمجرد تحميل الشبكة، نفذ عملية التوجيه
-        document.getElementById('get-directions-btn').addEventListener('click', function() {
-          const destination = document.getElementById('destination-input').value.trim();
+      var geocoder = L.Control.Geocoder.nominatim();
+      let destinationLatLng = null;
 
-          if (!destination || !userCoordinates) {
-            alert("الرجاء تحديد الموقع والوجهة");
+      // محاولة البحث عن الوجهة أولاً كاسم مجتمع (CommunityN)
+      let communityFound = false;
+      if (communityGeoJsonLayer) {
+        communityGeoJsonLayer.eachLayer(function(layer) {
+          if (layer.feature && layer.feature.properties &&
+              layer.feature.properties.CommunityN &&
+              layer.feature.properties.CommunityN.toLowerCase() === destination.toLowerCase()) {
+            communityFound = true;
+            layer.setStyle({
+              color: 'red',
+              weight: 5,
+              opacity: 0.8,
+              fillOpacity: 0.3,
+              fillColor: 'red'
+            });
+            const bounds = layer.getBounds();
+            destinationLatLng = bounds.getCenter();
+            console.log("Destination found in communities:", destinationLatLng); // Debugging
             return;
           }
-
-          // البحث عن أقرب نقاط
-          let start = userCoordinates.toString();
-          let end = destination; // سنفترض أنه يتم التحديد هنا.
-
-          // استخدام خوارزمية Dijkstra لحساب المسار
-          let path = dijkstra(graph, start, end);
-
-          // قم بإنشاء مسار جديد على الخريطة
-          let latlngs = path.map(function(node) {
-            return graph.node(node);
-          });
-
-          routingControl = L.Routing.control({
-            waypoints: latlngs.map(function(latlng) {
-              return L.latLng(latlng.lat, latlng.lon);
-            }),
-            routeWhileDragging: true,
-            language: 'ar'
-          }).addTo(map);
         });
-      });
+      }
+
+      // إذا لم يتم العثور على الوجهة كاسم مجتمع، استخدم خدمة Geocoder العامة
+      if (!communityFound) {
+        console.log("Destination not found in communities, trying Nominatim Geocoder..."); // Debugging
+        geocoder.geocode(destination, function(results) {
+          if (results && results.length > 0) {
+            destinationLatLng = results[0].center;
+            console.log("Destination found via Geocoder:", destinationLatLng); // Debugging
+
+            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
+            map.setView(destinationLatLng, 14);
+
+            initiateRouting(destinationLatLng);
+          } else {
+            alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال أو استخدام اسم مجتمع معروف.');
+            console.warn('Geocoder did not find results for:', destination); // Debugging
+          }
+        });
+      } else { // إذا تم العثور على الوجهة كاسم مجتمع
+        console.log("Destination found in communities, initiating routing..."); // Debugging
+        destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${destination}`).openPopup(); // إضافة علامة للوجهة
+        map.setView(destinationLatLng, 14);
+        initiateRouting(destinationLatLng);
+      }
+    });
+
+    function initiateRouting(destinationCoordinates) {
+        if (!userCoordinates || !destinationCoordinates) {
+            console.error("Cannot initiate routing: user or destination coordinates are missing.");
+            alert("لا يمكن رسم المسار. تأكد من تحديد موقعك الحالي والوجهة بشكل صحيح.");
+            return;
+        }
+
+        console.log("Initiating routing from", userCoordinates, "to", destinationCoordinates); // Debugging
+
+        routingControl = L.Routing.control({
+          waypoints: [
+            L.latLng(userCoordinates[0], userCoordinates[1]),
+            destinationCoordinates
+          ],
+          router: L.Routing.osrmv1({
+              serviceUrl: 'https://router.project-osrm.org/route/v1'
+          }),
+          routeWhileDragging: true,
+          language: 'ar',
+          showAlternatives: false,
+          lineOptions: {
+            styles: [{color: 'red', weight: 6, opacity: 0.8}]
+          },
+          collapsible: true
+        }).addTo(map);
+
+        routingControl.on('routesfound', function(e) {
+            var routes = e.routes;
+            var summary = routes[0].summary;
+            alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
+            console.log("Route found:", summary); // Debugging
+        });
+
+        routingControl.on('routingerror', function(e) {
+            alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
+            console.error("Routing error:", e.error); // Debugging
+        });
+    }
   </script>
 </body>
 </html>
