@@ -38,6 +38,48 @@
       width: 100%;
       padding-bottom: 5px;
     }
+    .popup-destination {
+      padding: 8px 15px;
+      margin-bottom: 8px;
+      border-radius: 15px;
+      cursor: pointer;
+      background-color: #ffd8b1;
+      border: 1.5px solid #ff9800;
+      font-weight: 600;
+      font-size: 17px;
+      color: #e65100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.25s ease;
+      user-select: none;
+    }
+    .popup-destination:hover {
+      background-color: #ffb366;
+      color: white;
+      border-color: #ef6c00;
+    }
+    .leaflet-popup-content {
+      text-align: right;
+    }
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 5px;
+    }
     .location-icon {
       background-color: #ff9800;
       border-radius: 50%;
@@ -49,6 +91,71 @@
       top: 10%;
       left: 10px;
       z-index: 1001;
+    }
+    #set-destination-icon {
+      position: absolute;
+      top: 10%;
+      left: 60px;
+      background-color: #1976d2;
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px;
+      height: 40px;
+      box-sizing: border-box;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #destination-table-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1002;
+      padding: 15px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: none;
+      width: 250px;
+      direction: rtl;
+    }
+    #destination-table-container h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    #destination-table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #destination-table-container th,
+    #destination-table-container td {
+      border: 1px solid #eee;
+      padding: 8px;
+      text-align: right;
+    }
+    #destination-table-container th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .destination-item {
+      cursor: pointer;
+      background-color: #e9f5ff;
+      transition: background-color 0.2s ease;
+    }
+    .destination-item:hover {
+      background-color: #cce7ff;
     }
   </style>
 </head>
@@ -72,7 +179,7 @@
 
   <script>
     var map = L.map('map').setView([31.9, 35.2], 9);
-    
+
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 20
@@ -81,7 +188,7 @@
     var userCoordinates = null;
     var routingControl = null;
     var destinationMarker = null;
-    var roadLayer = null;
+    var roadLayer = null; // لتحميل شبكة الطرق
 
     // تحميل شبكة الطرق
     fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson')
@@ -163,9 +270,6 @@
     function calculateRouteFromGeoJSON(startCoords, endCoords) {
       // خوارزمية Dijkstra أو A* (نحتاج إلى دمج خوارزمية هنا مع Network)
       // سنقوم بتحديد المسار باستخدام البيانات من شبكة الطرق geojson
-
-      // هنا نقوم بإعداد المسار باستخدام **Dijkstra** أو **A\***
-      // عليك استخدام خوارزمية لتحديد المسار بين النقاط (موقع المستخدم، الوجهة) باستخدام بيانات الشبكة.
 
       // حاليا نستخدم OSRM ولكن يمكنك تعديلها لاستخدام الخوارزميات المخصصة.
       routingControl = L.Routing.control({
