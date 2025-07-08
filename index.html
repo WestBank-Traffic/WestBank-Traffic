@@ -556,8 +556,6 @@
 
     function selectDestination(destination) {
       document.getElementById('destination-table-container').style.display = 'none';
-      // Manual input container should ideally be always displayed if that's the primary way
-      // document.getElementById('manual-destination-input-container').style.display = 'flex';
       document.getElementById('destination-input').value = destination;
     }
 
@@ -651,6 +649,7 @@
             map.setView(destinationLatLng, 14);
 
             initiateRouting(destinationLatLng);
+
           } else {
             alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال أو استخدام اسم مجتمع معروف.');
             console.warn('Geocoder did not find results for:', destination); // Debugging
