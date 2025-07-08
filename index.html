@@ -38,48 +38,6 @@
       width: 100%;
       padding-bottom: 5px;
     }
-    .popup-destination {
-      padding: 8px 15px;
-      margin-bottom: 8px;
-      border-radius: 15px;
-      cursor: pointer;
-      background-color: #ffd8b1;
-      border: 1.5px solid #ff9800;
-      font-weight: 600;
-      font-size: 17px;
-      color: #e65100;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: background-color 0.25s ease;
-      user-select: none;
-    }
-    .popup-destination:hover {
-      background-color: #ffb366;
-      color: white;
-      border-color: #ef6c00;
-    }
-    .leaflet-popup-content {
-      text-align: right;
-    }
-    select {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      margin-top: 5px;
-    }
     .location-icon {
       background-color: #ff9800;
       border-radius: 50%;
@@ -91,99 +49,6 @@
       top: 10%;
       left: 10px;
       z-index: 1001;
-    }
-    /* أنماط أيقونات المحافظات - سيتم تجاوز لون الخلفية للباصات بواسطة .bus-marker-custom */
-    .icon-ramallah { background-color: #FF5733; }
-    .icon-nablus { background-color: #33FF57; }
-    .icon-jenin { background-color: #3357FF; }
-    .icon-hebron { background-color: #FF33F5; }
-    .icon-bethlehem { background-color: #FFBD33; }
-    .icon-jericho { background-color: #33FFF5; }
-    .icon-tubas { background-color: #A833FF; }
-    .icon-qalqilya { background-color: #FF338A; }
-    .icon-tulkarm { background-color: #33FFBD; }
-    .icon-salfit { background-color: #D4FF33; }
-    .icon-jerusalem { background-color: #8A33FF; }
-    .bus-marker-custom {
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      border: 2px solid #FFF;
-      box-shadow: 0 0 5px rgba(0,0,0,0.5);
-      background-color: #FFA500; /* لون الباصات البرتقالي */
-    }
-
-    /* أنماط جديدة لأيقونة تحديد الوجهة وجدول الوجهات */
-    #set-destination-icon {
-      position: absolute;
-      top: 10%; /* نفس مكان زر الموقع */
-      left: 60px; /* بجانب زر الموقع */
-      background-color: #1976d2; /* لون أزرق */
-      border-radius: 50%;
-      padding: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 20px;
-      z-index: 1001;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 40px; /* لضبط الحجم */
-      height: 40px; /* لضبط الحجم */
-      box-sizing: border-box;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    #destination-table-container {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      z-index: 1002;
-      padding: 15px;
-      max-height: 80%;
-      overflow-y: auto;
-      display: none; /* مخفي افتراضياً */
-      width: 250px; /* عرض ثابت للجدول */
-      direction: rtl; /* لضمان عرض المحتوى من اليمين لليسار */
-    }
-    #destination-table-container h3 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 15px;
-      color: #333;
-    }
-    #destination-table-container table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #destination-table-container th,
-    #destination-table-container td {
-      border: 1px solid #eee;
-      padding: 8px;
-      text-align: right;
-    }
-    #destination-table-container th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
-    .destination-item {
-      cursor: pointer;
-      background-color: #e9f5ff;
-      transition: background-color 0.2s ease;
-    }
-    .destination-item:hover {
-      background-color: #cce7ff;
     }
   </style>
 </head>
@@ -201,31 +66,13 @@
     📍
   </div>
 
-  <div id="set-destination-icon" title="حدد الوجهة من خطوط الحافلات">
-    🎯
-  </div>
-
-  <div id="destination-table-container">
-    <h3>اختر وجهة من خطوط الحافلات</h3>
-    <table id="destination-table">
-      <thead>
-        <tr>
-          <th>الوجهة</th>
-        </tr>
-      </thead>
-      <tbody>
-        </tbody>
-    </table>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
   <script>
     var map = L.map('map').setView([31.9, 35.2], 9);
-
+    
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 20
@@ -234,7 +81,7 @@
     var userCoordinates = null;
     var routingControl = null;
     var destinationMarker = null;
-    var roadLayer = null; // لتحميل شبكة الطرق
+    var roadLayer = null;
 
     // تحميل شبكة الطرق
     fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson')
@@ -305,21 +152,29 @@
           destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
           map.setView(destinationLatLng, 14);
 
-          initiateRouting(destinationLatLng);
+          // Call the function to calculate the route from GeoJSON network
+          calculateRouteFromGeoJSON(userCoordinates, destinationLatLng);
         } else {
           alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
         }
       });
     });
 
-    function initiateRouting(destinationCoordinates) {
+    function calculateRouteFromGeoJSON(startCoords, endCoords) {
+      // خوارزمية Dijkstra أو A* (نحتاج إلى دمج خوارزمية هنا مع Network)
+      // سنقوم بتحديد المسار باستخدام البيانات من شبكة الطرق geojson
+
+      // هنا نقوم بإعداد المسار باستخدام **Dijkstra** أو **A\***
+      // عليك استخدام خوارزمية لتحديد المسار بين النقاط (موقع المستخدم، الوجهة) باستخدام بيانات الشبكة.
+
+      // حاليا نستخدم OSRM ولكن يمكنك تعديلها لاستخدام الخوارزميات المخصصة.
       routingControl = L.Routing.control({
         waypoints: [
-          L.latLng(userCoordinates[0], userCoordinates[1]),
-          destinationCoordinates
+          L.latLng(startCoords[0], startCoords[1]),
+          L.latLng(endCoords.lat, endCoords.lng)
         ],
         router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1'
+          serviceUrl: 'https://router.project-osrm.org/route/v1'
         }),
         routeWhileDragging: true,
         language: 'ar',
