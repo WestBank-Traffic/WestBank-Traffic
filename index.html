@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>تطبيق الهاتف النقال في تحليل المسارات البديلة</title>
+  <title>النقل العام وتحديد المسارات البديلة لتجاوز الحواجز العسكرية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
@@ -387,7 +387,7 @@
           let idCode = feature.properties["ID_CODE"];
           let exDataArray = exBusDictByID[idCode] || [];
 
-          let popupContent = <b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>;
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
 
           if (exDataArray.length > 0) {
             let destinationsByEndCity = {};
@@ -400,19 +400,19 @@
             });
 
             for (const endCity in destinationsByEndCity) {
-              popupContent += <h4 style="margin-top:10px; margin-bottom:5px;">وجهة إلى: ${endCity}</h4>;
+              popupContent += `<h4 style="margin-top:10px; margin-bottom:5px;">وجهة إلى: ${endCity}</h4>`;
               destinationsByEndCity[endCity].forEach((exData) => {
                 const fare = exData['اجرة المواصلات بالحافلات العمومي'] && exData['اجرة المواصلات بالحافلات العمومي'].trim() !== ""
                   ? exData['اجرة المواصلات بالحافلات العمومي']
                   : 'غير متوفرة';
 
-                popupContent += <div class="popup-destination" onclick="showDetails('${exData['بداية الخط - محافظة']}', '${exData['بداية الخط - مدينة']}', '${exData['نهاية الخط - مدينة']}', '${fare}', '${exData['حالة الخط']}', '${exData['مسار الخط ذهاب و اياب']}')"> +
-                  من ${exData["بداية الخط - مدينة"] || "-"} إلى ${exData["نهاية الخط - مدينة"] || "-"}  +
-                  </div>;
+                popupContent += `<div class="popup-destination" onclick="showDetails('${exData['بداية الخط - محافظة']}', '${exData['بداية الخط - مدينة']}', '${exData['نهاية الخط - مدينة']}', '${fare}', '${exData['حالة الخط']}', '${exData['مسار الخط ذهاب و اياب']}')">` +
+                  `من ${exData["بداية الخط - مدينة"] || "-"} إلى ${exData["نهاية الخط - مدينة"] || "-"} ` +
+                  `</div>`;
               });
             }
           } else {
-            popupContent += <i>لا توجد بيانات إضافية عن مسارات الحافلات من هذه المحطة.</i>;
+            popupContent += `<i>لا توجد بيانات إضافية عن مسارات الحافلات من هذه المحطة.</i>`;
           }
 
           layer.bindPopup(popupContent);
@@ -430,14 +430,14 @@
 
         L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon: icon})
           .addTo(map)
-          .bindPopup(<b>${name || 'غير محدد'}</b><br/>
+          .bindPopup(`<b>${name || 'غير محدد'}</b><br/>
             <b>الحالة:</b> ${status}<br/>
             <label>اختر الحالة:</label>
             <select id="select-${id}">
               <option value="مفتوح" ${status.includes("مفتوح") ? "selected" : ""}>مفتوح</option>
               <option value="مغلق" ${status.includes("مغلق") ? "selected" : ""}>مغلق</option>
             </select>
-            <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>);
+            <button onclick="updateCheckpoint('${id}')">تحديث الحالة</button>`);
       });
 
       L.geoJSON(roadData, {
@@ -462,11 +462,11 @@
         },
         onEachFeature: function(feature, layer) {
           if (feature.properties && feature.properties.CommunityN) {
-            layer.bindPopup(<b>المجتمع:</b> ${feature.properties.CommunityN});
+            layer.bindPopup(`<b>المجتمع:</b> ${feature.properties.CommunityN}`);
           } else {
             let popupContent = '<b>معلومات المجتمع:</b><br>';
             for (let key in feature.properties) {
-              popupContent += ${key}: ${feature.properties[key]}<br>;
+              popupContent += `${key}: ${feature.properties[key]}<br>`;
             }
             if (Object.keys(feature.properties).length === 0) {
               popupContent += 'لا توجد خصائص إضافية.';
@@ -484,7 +484,7 @@
     window.updateCheckpoint = function(id) {
       // هذه الدالة ستقوم بتحديث حالة الحاجز في الذاكرة المؤقتة (checkpointStatus)
       // ولن تحفظ التغييرات بشكل دائم عبر تحديث الصفحة ما لم يكن هناك backend
-      var selectElement = document.getElementById(select-${id});
+      var selectElement = document.getElementById(`select-${id}`);
       var newStatus = selectElement.value;
 
       // لتحديث حالة الحاجز في الـ checkpointStatus وكيفية عرضها على الخريطة
@@ -493,13 +493,13 @@
       // كمثال، إذا كان اسم الحاجز هو 'name_ar' من الـ GeoJSON:
       // var checkpointName = "..."; // يجب الحصول على اسم الحاجز هنا
       // checkpointStatus[checkpointName] = newStatus;
-      // alert(تم تحديث حالة الحاجز ${checkpointName} إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت.);
+      // alert(`تم تحديث حالة الحاجز ${checkpointName} إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت.`);
 
-      alert(تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.);
+      alert(`تم تحديث حالة الحاجز (ID: ${id}) إلى: ${newStatus}. لاحظ أن هذا التغيير مؤقت ولن يتم حفظه.`);
     };
 
     function showDetails(province, startCity, endCity, fare, lineStatus, route) {
-      const tableHTML = 
+      const tableHTML = `
         <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
           <h3 style="text-align: center; font-size: 20px;">تفاصيل الرحلة</h3>
           <table style="width: 100%; text-align: right; border-collapse: collapse; margin-top: 15px;">
@@ -529,7 +529,7 @@
             </tr>
           </table>
         </div>
-      ;
+      `;
 
       var popup = L.popup()
         .setLatLng(map.getCenter())
@@ -630,7 +630,7 @@
             destinationLatLng = bounds.getCenter();
 
             // إضافة علامة في مركز منطقة المجتمع
-            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(نقطة النهاية: ${layer.feature.properties.CommunityN}).openPopup();
+            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${layer.feature.properties.CommunityN}`).openPopup();
             map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
             return; // توقف بعد العثور على أول تطابق
           }
@@ -644,7 +644,7 @@
             destinationLatLng = results[0].center;
             
             // إضافة علامة في الوجهة المحددة بواسطة Geocoder
-            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(نقطة النهاية: ${results[0].name}).openPopup();
+            destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
             map.setView(destinationLatLng, 14); // يمكنك تعديل مستوى التكبير هنا
 
             // الآن بعد تحديد destinationLatLng، قم بإنشاء التحكم في التوجيه
@@ -691,4 +691,4 @@
     }
   </script>
 </body>
-</html> 
+</html>
