@@ -38,48 +38,6 @@
       width: 100%;
       padding-bottom: 5px;
     }
-    .popup-destination {
-      padding: 8px 15px;
-      margin-bottom: 8px;
-      border-radius: 15px;
-      cursor: pointer;
-      background-color: #ffd8b1;
-      border: 1.5px solid #ff9800;
-      font-weight: 600;
-      font-size: 17px;
-      color: #e65100;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: background-color 0.25s ease;
-      user-select: none;
-    }
-    .popup-destination:hover {
-      background-color: #ffb366;
-      color: white;
-      border-color: #ef6c00;
-    }
-    .leaflet-popup-content {
-      text-align: right;
-    }
-    select {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      margin-top: 5px;
-    }
     .location-icon {
       background-color: #ff9800;
       border-radius: 50%;
@@ -91,71 +49,6 @@
       top: 10%;
       left: 10px;
       z-index: 1001;
-    }
-    #set-destination-icon {
-      position: absolute;
-      top: 10%;
-      left: 60px;
-      background-color: #1976d2;
-      border-radius: 50%;
-      padding: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 20px;
-      z-index: 1001;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 40px;
-      height: 40px;
-      box-sizing: border-box;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    #destination-table-container {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      z-index: 1002;
-      padding: 15px;
-      max-height: 80%;
-      overflow-y: auto;
-      display: none;
-      width: 250px;
-      direction: rtl;
-    }
-    #destination-table-container h3 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 15px;
-      color: #333;
-    }
-    #destination-table-container table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #destination-table-container th,
-    #destination-table-container td {
-      border: 1px solid #eee;
-      padding: 8px;
-      text-align: right;
-    }
-    #destination-table-container th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
-    .destination-item {
-      cursor: pointer;
-      background-color: #e9f5ff;
-      transition: background-color 0.2s ease;
-    }
-    .destination-item:hover {
-      background-color: #cce7ff;
     }
   </style>
 </head>
@@ -174,49 +67,32 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/graphlib/2.1.1/graphlib.min.js"></script>
 
   <script>
     var map = L.map('map').setView([31.9, 35.2], 9);
+    var userCoordinates = null;
+    var routingControl = null;
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 20
     }).addTo(map);
 
-    var userCoordinates = null;
-    var routingControl = null;
-    var destinationMarker = null;
-    var roadLayer = null; // لتحميل شبكة الطرق
-
-    // تحميل شبكة الطرق
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson')
-      .then(response => response.json())
-      .then(data => {
-        roadLayer = L.geoJSON(data, {
-          style: {
-            color: 'blue',
-            weight: 2,
-            opacity: 0.7
-          }
-        }).addTo(map);
-      }).catch(err => {
-        console.error('خطأ في تحميل شبكة الطرق:', err);
-        alert('حدث خطأ في تحميل شبكة الطرق.');
-      });
+    var userLocationMarker = null;
 
     document.getElementById('location-btn').addEventListener('click', function() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           userCoordinates = [position.coords.latitude, position.coords.longitude];
-
-          if (destinationMarker) {
-            destinationMarker.setLatLng(userCoordinates);
+          if (userLocationMarker) {
+            userLocationMarker.setLatLng(userCoordinates);
           } else {
-            destinationMarker = L.marker(userCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
+            userLocationMarker = L.marker(userCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
           }
-
           map.setView(userCoordinates, 13);
         }, function(error) {
           alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
@@ -227,79 +103,104 @@
       }
     });
 
-    document.getElementById('get-directions-btn').addEventListener('click', function() {
-      const destination = document.getElementById('destination-input').value.trim();
+    // خوارزمية Dijkstra
+    function dijkstra(graph, start, end) {
+      let distances = {};
+      let previous = {};
+      let nodes = new Set();
 
-      if (!destination) {
-        alert("الرجاء إدخال الوجهة.");
-        return;
-      }
-
-      if (!userCoordinates) {
-        alert("الرجاء تحديد موقعك الحالي أولاً باستخدام زر الموقع.");
-        return;
-      }
-
-      if (routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
-      }
-
-      if (destinationMarker) {
-        map.removeLayer(destinationMarker);
-        destinationMarker = null;
-      }
-
-      var geocoder = L.Control.Geocoder.nominatim();
-
-      geocoder.geocode(destination, function(results) {
-        if (results && results.length > 0) {
-          const destinationLatLng = results[0].center;
-
-          destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
-          map.setView(destinationLatLng, 14);
-
-          // Call the function to calculate the route from GeoJSON network
-          calculateRouteFromGeoJSON(userCoordinates, destinationLatLng);
-        } else {
-          alert('لم يتم العثور على الوجهة المحددة: ' + destination + '. الرجاء التحقق من الإدخال.');
-        }
+      graph.nodes().forEach(function(node) {
+        distances[node] = Infinity;
+        previous[node] = null;
+        nodes.add(node);
       });
-    });
+      distances[start] = 0;
 
-    function calculateRouteFromGeoJSON(startCoords, endCoords) {
-      // خوارزمية Dijkstra أو A* (نحتاج إلى دمج خوارزمية هنا مع Network)
-      // سنقوم بتحديد المسار باستخدام البيانات من شبكة الطرق geojson
+      while (nodes.size > 0) {
+        let closestNode = null;
+        nodes.forEach(function(node) {
+          if (closestNode === null || distances[node] < distances[closestNode]) {
+            closestNode = node;
+          }
+        });
 
-      // حاليا نستخدم OSRM ولكن يمكنك تعديلها لاستخدام الخوارزميات المخصصة.
-      routingControl = L.Routing.control({
-        waypoints: [
-          L.latLng(startCoords[0], startCoords[1]),
-          L.latLng(endCoords.lat, endCoords.lng)
-        ],
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1'
-        }),
-        routeWhileDragging: true,
-        language: 'ar',
-        showAlternatives: false,
-        lineOptions: {
-          styles: [{color: 'red', weight: 6, opacity: 0.8}]
-        },
-        collapsible: true
-      }).addTo(map);
+        if (distances[closestNode] === Infinity) break;
 
-      routingControl.on('routesfound', function(e) {
-        var routes = e.routes;
-        var summary = routes[0].summary;
-        alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم، المدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة.');
-      });
+        nodes.delete(closestNode);
 
-      routingControl.on('routingerror', function(e) {
-        alert('لم يتم العثور على مسار للوجهة المحددة. يرجى التحقق من الوجهة أو المحاولة مرة أخرى.');
-        console.error("Routing error:", e.error);
-      });
+        let neighbors = graph.neighbors(closestNode);
+        neighbors.forEach(function(neighbor) {
+          let alt = distances[closestNode] + graph.edge(closestNode, neighbor).weight;
+          if (alt < distances[neighbor]) {
+            distances[neighbor] = alt;
+            previous[neighbor] = closestNode;
+          }
+        });
+      }
+
+      // بناء المسار
+      let path = [];
+      let currentNode = end;
+      while (currentNode) {
+        path.unshift(currentNode);
+        currentNode = previous[currentNode];
+      }
+
+      return path;
     }
+
+    // تحميل بيانات شبكة الطرق (GeoJSON)
+    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Road.geojson')
+      .then(response => response.json())
+      .then(data => {
+        var graph = new graphlib.Graph();
+        data.features.forEach(function(feature) {
+          var id = feature.properties.name;
+          var coordinates = feature.geometry.coordinates;
+
+          // إضافة النقاط إلى الرسم البياني
+          graph.setNode(id, { lat: coordinates[0], lon: coordinates[1] });
+
+          // إضافة الحواف بين النقاط
+          if (feature.geometry.type === "LineString") {
+            for (let i = 0; i < coordinates.length - 1; i++) {
+              var from = coordinates[i];
+              var to = coordinates[i + 1];
+              graph.setEdge(from.toString(), to.toString(), { weight: 1 });
+            }
+          }
+        });
+
+        // بمجرد تحميل الشبكة، نفذ عملية التوجيه
+        document.getElementById('get-directions-btn').addEventListener('click', function() {
+          const destination = document.getElementById('destination-input').value.trim();
+
+          if (!destination || !userCoordinates) {
+            alert("الرجاء تحديد الموقع والوجهة");
+            return;
+          }
+
+          // البحث عن أقرب نقاط
+          let start = userCoordinates.toString();
+          let end = destination; // سنفترض أنه يتم التحديد هنا.
+
+          // استخدام خوارزمية Dijkstra لحساب المسار
+          let path = dijkstra(graph, start, end);
+
+          // قم بإنشاء مسار جديد على الخريطة
+          let latlngs = path.map(function(node) {
+            return graph.node(node);
+          });
+
+          routingControl = L.Routing.control({
+            waypoints: latlngs.map(function(latlng) {
+              return L.latLng(latlng.lat, latlng.lon);
+            }),
+            routeWhileDragging: true,
+            language: 'ar'
+          }).addTo(map);
+        });
+      });
   </script>
 </body>
 </html>
