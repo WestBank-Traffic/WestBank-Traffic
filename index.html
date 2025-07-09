@@ -28,10 +28,13 @@
             align-items: center;
             width: calc(100% - 40px); /* عرض أكبر مع هامش */
             max-width: 400px; /* تحديد أقصى عرض */
-            transition: top 0.3s ease-in-out; /* حركة سلسة للإخفاء/الإظهار */
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; /* حركة سلسة للإخفاء/الإظهار */
+            opacity: 0; /* مخفي افتراضيا */
+            visibility: hidden; /* مخفي افتراضيا */
         }
-        #control-box.hidden {
-            top: -200px; /* إخفاء اللوحة للأعلى */
+        #control-box.visible {
+            opacity: 1; /* إظهار اللوحة */
+            visibility: visible; /* إظهار اللوحة */
         }
         #toggle-control-box {
             position: absolute;
@@ -188,8 +191,8 @@
     <div id="control-box">
         <div class="leaflet-control-title">تطبيق الهاتف النقال في تحليل المسارات البديلة</div>
         <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <input type="text" id="start-input" placeholder="نقطة البداية" readonly />
-            <input type="text" id="destination-input" placeholder="الوجهة" readonly/>
+            <input type="text" id="start-input" placeholder="نقطة البداية" />
+            <input type="text" id="destination-input" placeholder="الوجهة" />
             <button id="get-directions-btn" class="action-button">الحصول على الاتجاهات</button>
         </div>
     </div>
@@ -201,11 +204,11 @@
     </div>
 
     <div id="set-start-icon" class="location-icon" title="تعيين نقطة البداية بالنقر على الخريطة">
-        A
+        🟢
     </div>
 
     <div id="set-destination-icon" class="location-icon" title="تعيين الوجهة بالنقر على الخريطة">
-        B
+        🏁
     </div>
 
     <div id="route-info-panel">
@@ -516,16 +519,12 @@
         document.getElementById('toggle-control-box').addEventListener('click', function() {
             const controlBox = document.getElementById('control-box');
             const toggleButton = this;
-            if (controlBox.classList.contains('hidden')) {
-                controlBox.classList.remove('hidden');
+            if (controlBox.classList.contains('visible')) {
+                controlBox.classList.remove('visible');
                 toggleButton.textContent = '^'; // سهم للأعلى
-                // Adjust button position to be outside the hidden box if it was inside
-                toggleButton.style.top = '10px';
             } else {
-                controlBox.classList.add('hidden');
+                controlBox.classList.add('visible');
                 toggleButton.textContent = 'v'; // سهم للأسفل
-                // Adjust button position to stay visible after hiding the box
-                toggleButton.style.top = '10px'; // Keep it at 10px, it will float over the hidden box
             }
         });
 
@@ -555,10 +554,10 @@
             }
         });
 
-        // زر تعيين نقطة البداية بالنقر (A)
+        // زر تعيين نقطة البداية بالنقر (🟢)
         document.getElementById('set-start-icon').addEventListener('click', function() {
             currentMode = 'setStart';
-            alert('الرجاء النقر على الخريطة لتعيين نقطة البداية (A).');
+            alert('الرجاء النقر على الخريطة لتعيين نقطة البداية (🟢).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
              // إزالة علامة المستخدم الحالية إذا كانت موجودة
             if (userLocationMarker) {
@@ -567,10 +566,10 @@
             }
         });
 
-        // زر تعيين الوجهة بالنقر (B)
+        // زر تعيين الوجهة بالنقر (🏁)
         document.getElementById('set-destination-icon').addEventListener('click', function() {
             currentMode = 'setDestination';
-            alert('الرجاء النقر على الخريطة لتعيين الوجهة (B).');
+            alert('الرجاء النقر على الخريطة لتعيين الوجهة (🏁).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
         });
 
@@ -582,9 +581,9 @@
                     map.removeLayer(startMarker);
                 }
                 startMarker = L.marker(startCoordinates, {
-                    icon: L.divIcon({className: 'location-icon', html: 'A', iconSize: [40, 40], iconAnchor: [20, 40]})
+                    icon: L.divIcon({className: 'location-icon', html: '🟢', iconSize: [40, 40], iconAnchor: [20, 40]})
                 }).addTo(map).bindPopup("نقطة البداية").openPopup();
-                document.getElementById('start-input').value = `نقطة A (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+                document.getElementById('start-input').value = `نقطة البداية (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
                 currentMode = null; // إيقاف وضع التحديد
                 map.getContainer().style.cursor = ''; // إعادة المؤشر الافتراضي
                 initiateRouting(); // حاول رسم المسار
@@ -594,9 +593,9 @@
                     map.removeLayer(destinationMarker);
                 }
                 destinationMarker = L.marker(destinationCoordinates, {
-                    icon: L.divIcon({className: 'location-icon', html: 'B', iconSize: [40, 40], iconAnchor: [20, 40]})
+                    icon: L.divIcon({className: 'location-icon', html: '🏁', iconSize: [40, 40], iconAnchor: [20, 40]})
                 }).addTo(map).bindPopup("الوجهة").openPopup();
-                document.getElementById('destination-input').value = `نقطة B (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+                document.getElementById('destination-input').value = `الوجهة (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
                 currentMode = null; // إيقاف وضع التحديد
                 map.getContainer().style.cursor = ''; // إعادة المؤشر الافتراضي
                 initiateRouting(); // حاول رسم المسار
@@ -652,7 +651,7 @@
                 document.getElementById('route-distance').textContent = (summary.totalDistance / 1000).toFixed(2) + ' كم';
                 document.getElementById('route-duration').textContent = Math.round(summary.totalTime / 60) + ' دقيقة';
                 document.getElementById('route-info-panel').style.display = 'block'; // إظهار اللوحة
-                map.fitBounds(routingControl.get  .routes[0].bounds); // تكبير/تصغير الخريطة لتناسب المسار
+                map.fitBounds(routingControl.getPlan().getWaypoints()[0].latLng.toBounds(100)); // Adjusted to fit initial waypoint view
             });
 
             routingControl.on('routingerror', function(e) {
