@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>تحليل المسارات - الضفة الغربية</title>
+    <title>رسم مسار بين نقطتين</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
@@ -11,198 +11,60 @@
             height: 100%;
             margin: 0; padding: 0;
         }
-        #route-info-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px 20px;
-            border-radius: 8px;
-            z-index: 1000;
-            display: none;
-            text-align: center;
-            font-size: 16px;
-            color: #333;
-        }
-        #route-info-panel strong {
-            color: #1976d2;
-            font-size: 18px;
-        }
-        #control-box {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: calc(100% - 40px);
-            max-width: 400px;
-        }
-        #toggle-control-box {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        #toggle-control-box:hover {
-            background-color: #135da8;
-        }
-        #start-input, #destination-input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            background-color: #f9f9f9;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            margin-top: 8px;
-            transition: background-color 0.2s ease;
-        }
-        button:hover {
-            background: #135da8;
-        }
-        .location-icon, #set-start-icon, #set-destination-icon {
-            background-color: #ff9800;
-            border-radius: 50%;
-            padding: 10px;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-            position: absolute;
-            z-index: 1001;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            height: 40px;
-        }
-        .location-icon:hover, #set-start-icon:hover, #set-destination-icon:hover {
-            background-color: #ef6c00;
-        }
-        .location-icon {
-            top: 10px;
-            left: 10px;
-        }
-        #set-start-icon {
-            top: 65px;
-            left: 10px;
-            background-color: #2196F3;
-        }
-        #set-start-icon:hover {
-            background-color: #1976d2;
-        }
-        #set-destination-icon {
-            top: 120px;
-            left: 10px;
-            background-color: #F44336;
-        }
-        #set-destination-icon:hover {
-            background-color: #d32f2f;
-        }
     </style>
 </head>
 <body>
-    <div id="map"></div>
 
-    <div id="control-box">
-        <div class="leaflet-control-title">تحليل المسارات - الضفة الغربية</div>
-        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <input type="text" id="start-input" placeholder="نقطة البداية" readonly />
-            <input type="text" id="destination-input" placeholder="الوجهة" readonly />
-            <button id="get-directions-btn" class="action-button">الحصول على الاتجاهات</button>
-        </div>
-    </div>
+<div id="map"></div>
 
-    <button id="toggle-control-box">^</button>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
-    <div id="location-btn" class="location-icon" title="تحديد موقعي الحالي">📍</div>
-    <div id="set-start-icon" class="location-icon" title="تعيين نقطة البداية بالنقر على الخريطة">A</div>
-    <div id="set-destination-icon" class="location-icon" title="تعيين الوجهة بالنقر على الخريطة">B</div>
+<script>
+    // تعيين الخريطة
+    var map = L.map('map').setView([31.9024, 35.2032], 9); // تمركز الخريطة على الضفة الغربية (رام الله)
 
-    <div id="route-info-panel">
-        <strong>معلومات المسار:</strong><br>
-        المسافة: <span id="route-distance"></span><br>
-        المدة: <span id="route-duration"></span>
-    </div>
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 20
+    }).addTo(map);
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    // إحداثيات نقطة البداية (رام الله)
+    var startCoordinates = [31.9024, 35.2032];
+    // إحداثيات نقطة الوجهة (نابلس)
+    var destinationCoordinates = [32.2211, 35.2544];
 
-    <script>
-        // تعيين الخريطة على الضفة الغربية
-        var map = L.map('map').setView([31.9, 35.2], 9); // تمركز الخريطة على الضفة الغربية
+    // رسم المسار بين النقاط
+    var routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(startCoordinates[0], startCoordinates[1]),
+            L.latLng(destinationCoordinates[0], destinationCoordinates[1])
+        ],
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1'
+        }),
+        routeWhileDragging: true,
+        language: 'ar',
+        showAlternatives: false,
+        lineOptions: {
+            styles: [{color: 'red', weight: 6, opacity: 0.8}] // المسار باللون الأحمر
+        },
+        collapsible: true,
+        createMarker: function() { return null; } // لا يتم إنشاء علامات على المسار
+    }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            maxZoom: 20
-        }).addTo(map);
+    // عند إيجاد المسار، نعرض المسافة والوقت
+    routingControl.on('routesfound', function(e) {
+        var routes = e.routes;
+        var summary = routes[0].summary;
+        alert('المسافة: ' + (summary.totalDistance / 1000).toFixed(2) + ' كم\nالمدة: ' + Math.round(summary.totalTime / 60) + ' دقيقة');
+        map.fitBounds(routingControl.getPlan().getWaypoints()[0].latLng.toBounds(100)); // تكبير/تصغير الخريطة لتناسب المسار
+    });
 
-        // إحداثيات نقطة البداية (رام الله)
-        var startCoordinates = [31.9024, 35.2032];
-        // إحداثيات نقطة الوجهة (نابلس)
-        var destinationCoordinates = [32.2211, 35.2544];
-
-        // استخدام مكتبة Leaflet Routing Machine لإيجاد المسار بين النقاط
-        var routingControl = L.Routing.control({
-            waypoints: [
-                L.latLng(startCoordinates[0], startCoordinates[1]),
-                L.latLng(destinationCoordinates[0], destinationCoordinates[1])
-            ],
-            router: L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1'
-            }),
-            routeWhileDragging: true,
-            language: 'ar',
-            showAlternatives: false,
-            lineOptions: {
-                styles: [{color: 'red', weight: 6, opacity: 0.8}] // المسار باللون الأحمر
-            },
-            collapsible: true,
-            createMarker: function() { return null; } // لا يتم إنشاء علامات على المسار
-        }).addTo(map);
-
-        // عند إيجاد المسار، نعرض المسافة والوقت
-        routingControl.on('routesfound', function(e) {
-            var routes = e.routes;
-            var summary = routes[0].summary;
-            document.getElementById('route-distance').textContent = (summary.totalDistance / 1000).toFixed(2) + ' كم';
-            document.getElementById('route-duration').textContent = Math.round(summary.totalTime / 60) + ' دقيقة';
-            document.getElementById('route-info-panel').style.display = 'block'; // إظهار لوحة المعلومات
-            map.fitBounds(routingControl.getPlan().getWaypoints()[0].latLng.toBounds(100)); // تكبير/تصغير الخريطة لتناسب المسار
-        });
-
-        routingControl.on('routingerror', function(e) {
-            alert('لم يتم العثور على مسار للوجهة المحددة.');
-        });
-    </script>
+    routingControl.on('routingerror', function(e) {
+        alert('لم يتم العثور على مسار للوجهة المحددة.');
+    });
+</script>
 
 </body>
 </html>
