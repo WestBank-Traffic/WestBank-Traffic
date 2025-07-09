@@ -80,7 +80,7 @@
       font-size: 18px;
       margin-top: 5px;
     }
-    .location-icon, .province-icon, .destination-icon {
+    .location-icon {
       background-color: #ff9800;
       border-radius: 50%;
       padding: 10px;
@@ -88,20 +88,22 @@
       cursor: pointer;
       font-size: 20px;
       position: absolute;
-      z-index: 1001;
-    }
-    .location-icon {
       top: 10%;
       left: 10px;
+      z-index: 1001;
     }
-    .province-icon {
-      top: 10%;
-      left: 70px; /* تحديد موقع الأيقونة الخاصة بالمحافظة */
-    }
-    .destination-icon {
-      top: 10%;
-      left: 130px; /* تحديد موقع الأيقونة الخاصة باختيار الوجهة */
-    }
+    /* أنماط أيقونات المحافظات - سيتم تجاوز لون الخلفية للباصات بواسطة .bus-marker-custom */
+    .icon-ramallah { background-color: #FF5733; }
+    .icon-nablus { background-color: #33FF57; }
+    .icon-jenin { background-color: #3357FF; }
+    .icon-hebron { background-color: #FF33F5; }
+    .icon-bethlehem { background-color: #FFBD33; }
+    .icon-jericho { background-color: #33FFF5; }
+    .icon-tubas { background-color: #A833FF; }
+    .icon-qalqilya { background-color: #FF338A; }
+    .icon-tulkarm { background-color: #33FFBD; }
+    .icon-salfit { background-color: #D4FF33; }
+    .icon-jerusalem { background-color: #8A33FF; }
     .bus-marker-custom {
       border-radius: 50%;
       width: 30px;
@@ -116,6 +118,29 @@
       box-shadow: 0 0 5px rgba(0,0,0,0.5);
       background-color: #FFA500; /* لون الباصات البرتقالي */
     }
+
+    /* أنماط جديدة لأيقونة تحديد الوجهة وجدول الوجهات */
+    #set-destination-icon {
+      position: absolute;
+      top: 10%; /* نفس مكان زر الموقع */
+      left: 60px; /* بجانب زر الموقع */
+      background-color: #1976d2; /* لون أزرق */
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px; /* لضبط الحجم */
+      height: 40px; /* لضبط الحجم */
+      box-sizing: border-box;
+      text-align: center;
+      font-weight: bold;
+    }
+
     #destination-table-container {
       position: absolute;
       top: 10px;
@@ -128,9 +153,9 @@
       padding: 15px;
       max-height: 80%;
       overflow-y: auto;
-      display: none;
-      width: 250px;
-      direction: rtl;
+      display: none; /* مخفي افتراضياً */
+      width: 250px; /* عرض ثابت للجدول */
+      direction: rtl; /* لضمان عرض المحتوى من اليمين لليسار */
     }
     #destination-table-container h3 {
       text-align: center;
@@ -166,17 +191,17 @@
   <div id="map"></div>
   <div id="control-box">
     <div class="leaflet-control-title">تطبيق الهاتف النقال في تحليل المسارات البديلة</div>
+    <div id="manual-destination-input-container" style="display: none; width: 90%; flex-direction: column; align-items: center; margin-top: 10px;">
+      <input type="text" id="destination-input" placeholder="أدخل الوجهة هنا (مثال: رام الله)" />
+      <button id="get-directions-btn">الحصول على الاتجاهات</button>
+    </div>
   </div>
 
   <div id="location-btn" class="location-icon">
     📍
   </div>
 
-  <div id="set-province-icon" class="province-icon" title="حدد المحافظة">
-    🏙️
-  </div>
-
-  <div id="set-destination-icon" class="destination-icon" title="حدد الوجهة">
+  <div id="set-destination-icon" title="حدد الوجهة من خطوط الحافلات">
     🎯
   </div>
 
@@ -206,46 +231,84 @@
       maxZoom: 20
     }).addTo(map);
 
-    var selectedProvince = null;
-    var selectedDestination = null;
-    var allBusDestinations = new Set();
+    function createBusIconForProvince(provinceName) {
+      return L.divIcon({
+        className: 'bus-marker-custom',
+        html: '🚌',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+      });
+    }
 
+    var openCheckpointIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints_T.svg',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
+    });
+
+    var closedCheckpointIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Logo%20checkpoints.svg',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    var userLocationMarker = null;
+    var userCoordinates = null;
+    var routingControl = null;
+    var allBusDestinations = new Set();
     var communityGeoJsonLayer = null;
     var destinationMarker = null;
+
+    document.getElementById('location-btn').addEventListener('click', function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          userCoordinates = [position.coords.latitude, position.coords.longitude];
+          if (userLocationMarker) {
+            userLocationMarker.setLatLng(userCoordinates);
+          } else {
+            userLocationMarker = L.marker(userCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
+          }
+          map.setView(userCoordinates, 13);
+        }, function(error) {
+          alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
+          console.error("Error getting location:", error);
+        });
+      } else {
+        alert("لم يتمكن المتصفح من الحصول على موقعك.");
+      }
+    });
 
     // تحميل بيانات المحافظات ووجهات الحافلات
     Promise.all([
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/Governarates.geojson').then(r => r.json()),
       fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/BUS_WestBank.geojson').then(r => r.json())
     ]).then(([governoratesData, busData]) => {
-      // إنشاء الأيقونة لاختيار المحافظة
-      const provinceSelectIcon = L.divIcon({
-        className: 'location-icon',
-        html: '🏙️',
-        iconSize: [30, 30],
-      });
-
-      L.marker([31.9, 35.2], {icon: provinceSelectIcon}).addTo(map).bindPopup('حدد المحافظة والوجهة').on('click', function() {
-        displayProvinceSelect();
-      });
-
-      // إنشاء الأيقونات للمحافظات
       governoratesData.features.forEach(function(feature) {
         const provinceName = feature.properties.name;
         allBusDestinations.add(provinceName);
       });
 
-      // إضافة حدث للأيقونة
-      document.getElementById('set-destination-icon').addEventListener('click', function() {
-        showDestinationTable();
-      });
+      L.geoJSON(busData, {
+        pointToLayer: function(feature, latlng) {
+          const provinceName = feature.properties["المحافظة"];
+          const busIcon = createBusIconForProvince(provinceName);
+          return L.marker(latlng, {icon: busIcon});
+        },
+        onEachFeature: function(feature, layer) {
+          let popupContent = `<b style="font-size:22px; font-weight:bold; display:block; margin-bottom:10px;">اسم المحطة: ${feature.properties["الاسم"]}</b><hr/>`;
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(map);
 
+      // وظيفة لإظهار الوجهات
       function showDestinationTable() {
         const tbody = document.querySelector('#destination-table tbody');
-        tbody.innerHTML = ''; // إعادة تعيين الجدول
+        tbody.innerHTML = '';
 
         const sortedDestinations = Array.from(allBusDestinations).sort();
-
         sortedDestinations.forEach(function(destination) {
           const row = tbody.insertRow();
           row.className = 'destination-item';
@@ -290,14 +353,8 @@
           .setContent(tableHTML)
           .openOn(map);
       }
+
     });
-
-    // وظيفة عرض اختيار المحافظة
-    function displayProvinceSelect() {
-      // يمكن إضافة اختيار المحافظة هنا باستخدام قائمة منسدلة أو خريطة
-      alert('اختر المحافظة من الخريطة');
-    }
-
   </script>
 </body>
 </html>
