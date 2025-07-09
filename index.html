@@ -28,13 +28,10 @@
             align-items: center;
             width: calc(100% - 40px); /* عرض أكبر مع هامش */
             max-width: 400px; /* تحديد أقصى عرض */
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; /* حركة سلسة للإخفاء/الإظهار */
-            opacity: 0; /* مخفي افتراضيا */
-            visibility: hidden; /* مخفي افتراضيا */
+            transition: top 0.3s ease-in-out; /* حركة سلسة للإخفاء/الإظهار */
         }
-        #control-box.visible {
-            opacity: 1; /* إظهار اللوحة */
-            visibility: visible; /* إظهار اللوحة */
+        #control-box.hidden {
+            top: -200px; /* إخفاء اللوحة للأعلى */
         }
         #toggle-control-box {
             position: absolute;
@@ -69,7 +66,7 @@
             border-bottom: 1px solid #eee; /* خط فاصل */
         }
         /* حقول الإدخال */
-        #start-input, #destination-input {
+        #start-input, #destination-input, #get-directions-btn {
             width: 100%;
             padding: 8px; /* زيادة البادينج */
             margin-bottom: 10px;
@@ -78,7 +75,12 @@
             border: 1px solid #ccc;
             box-sizing: border-box; /* لضمان أن العرض يشمل البادينج والبوردر */
             background-color: #f9f9f9; /* لون خلفية خفيف للإشارة لأنها للقراءة فقط */
+            display: none; /* Hidden by default */
         }
+        #get-directions-btn {
+             margin-bottom: 0; /* Remove extra margin */
+        }
+
         button {
             width: 100%;
             padding: 12px; /* زيادة البادينج */
@@ -519,17 +521,25 @@
         document.getElementById('toggle-control-box').addEventListener('click', function() {
             const controlBox = document.getElementById('control-box');
             const toggleButton = this;
-            if (controlBox.classList.contains('visible')) {
-                controlBox.classList.remove('visible');
+            if (controlBox.classList.contains('hidden')) {
+                controlBox.classList.remove('hidden');
                 toggleButton.textContent = '^'; // سهم للأعلى
+                // Adjust button position to be outside the hidden box if it was inside
+                toggleButton.style.top = '10px';
             } else {
-                controlBox.classList.add('visible');
+                controlBox.classList.add('hidden');
                 toggleButton.textContent = 'v'; // سهم للأسفل
+                // Adjust button position to stay visible after hiding the box
+                toggleButton.style.top = '10px'; // Keep it at 10px, it will float over the hidden box
             }
         });
 
         // زر تحديد موقعي الحالي
         document.getElementById('location-btn').addEventListener('click', function() {
+            // Show the relevant input field
+            document.getElementById('start-input').style.display = 'block';
+            document.getElementById('get-directions-btn').style.display = 'block';
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     startCoordinates = [position.coords.latitude, position.coords.longitude];
@@ -557,6 +567,8 @@
         // زر تعيين نقطة البداية بالنقر (🟢)
         document.getElementById('set-start-icon').addEventListener('click', function() {
             currentMode = 'setStart';
+            document.getElementById('start-input').style.display = 'block'; // Show start input
+            document.getElementById('get-directions-btn').style.display = 'block'; // Show get directions button
             alert('الرجاء النقر على الخريطة لتعيين نقطة البداية (🟢).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
              // إزالة علامة المستخدم الحالية إذا كانت موجودة
@@ -569,6 +581,8 @@
         // زر تعيين الوجهة بالنقر (🏁)
         document.getElementById('set-destination-icon').addEventListener('click', function() {
             currentMode = 'setDestination';
+            document.getElementById('destination-input').style.display = 'block'; // Show destination input
+            document.getElementById('get-directions-btn').style.display = 'block'; // Show get directions button
             alert('الرجاء النقر على الخريطة لتعيين الوجهة (🏁).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
         });
@@ -651,7 +665,7 @@
                 document.getElementById('route-distance').textContent = (summary.totalDistance / 1000).toFixed(2) + ' كم';
                 document.getElementById('route-duration').textContent = Math.round(summary.totalTime / 60) + ' دقيقة';
                 document.getElementById('route-info-panel').style.display = 'block'; // إظهار اللوحة
-                map.fitBounds(routingControl.getPlan().getWaypoints()[0].latLng.toBounds(100)); // Adjusted to fit initial waypoint view
+                map.fitBounds(routingControl.getPlan().getWaypoints()[0].latLng.toBounds(100)); // تكبير/تصغير الخريطة لتناسب المسار
             });
 
             routingControl.on('routingerror', function(e) {
