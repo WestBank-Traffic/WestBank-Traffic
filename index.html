@@ -19,7 +19,7 @@
             left: 50%;
             transform: translateX(-50%);
             background: white;
-            padding: 5px 15px; /* زيادة البادينج */
+            padding: 10px 15px; /* زيادة البادينج */
             border-radius: 8px; /* حواف أكثر دائرية */
             box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* ظل أوضح */
             z-index: 1000;
@@ -65,37 +65,16 @@
             padding-bottom: 5px;
             border-bottom: 1px solid #eee; /* خط فاصل */
         }
-        .popup-destination {
-            padding: 8px 15px;
-            margin-bottom: 8px;
-            border-radius: 15px;
-            cursor: pointer;
-            background-color: #ffd8b1;
-            border: 1.5px solid #ff9800;
-            font-weight: 600;
-            font-size: 17px;
-            color: #e65100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.25s ease;
-            user-select: none;
-        }
-        .popup-destination:hover {
-            background-color: #ffb366;
-            color: white;
-            border-color: #ef6c00;
-        }
-        .leaflet-popup-content {
-            text-align: right;
-        }
-        select {
+        /* حقول الإدخال */
+        #start-input, #destination-input {
             width: 100%;
             padding: 8px; /* زيادة البادينج */
             margin-bottom: 10px;
             border-radius: 5px;
             font-size: 16px;
             border: 1px solid #ccc;
+            box-sizing: border-box; /* لضمان أن العرض يشمل البادينج والبوردر */
+            background-color: #f9f9f9; /* لون خلفية خفيف للإشارة لأنها للقراءة فقط */
         }
         button {
             width: 100%;
@@ -119,7 +98,7 @@
         .action-button:hover {
             background-color: #45a049;
         }
-        .location-icon, #set-destination-icon, #set-start-icon {
+        .location-icon, #set-start-icon, #set-destination-icon {
             background-color: #ff9800; /* لون موحد للأزرار العائمة */
             border-radius: 50%;
             padding: 10px;
@@ -139,7 +118,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: background-color 0.2s ease;
         }
-        .location-icon:hover, #set-destination-icon:hover, #set-start-icon:hover {
+        .location-icon:hover, #set-start-icon:hover, #set-destination-icon:hover {
             background-color: #ef6c00;
         }
         .location-icon {
@@ -164,17 +143,6 @@
         }
 
         /* أنماط أيقونات المحافظات - سيتم تجاوز لون الخلفية للباصات بواسطة .bus-marker-custom */
-        .icon-ramallah { background-color: #FF5733; }
-        .icon-nablus { background-color: #33FF57; }
-        .icon-jenin { background-color: #3357FF; }
-        .icon-hebron { background-color: #FF33F5; }
-        .icon-bethlehem { background-color: #FFBD33; }
-        .icon-jericho { background-color: #33FFF5; }
-        .icon-tubas { background-color: #A833FF; }
-        .icon-qalqilya { background-color: #FF338A; }
-        .icon-tulkarm { background-color: #33FFBD; }
-        .icon-salfit { background-color: #D4FF33; }
-        .icon-jerusalem { background-color: #8A33FF; }
         .bus-marker-custom {
             border-radius: 50%;
             width: 30px;
@@ -188,52 +156,6 @@
             border: 2px solid #FFF;
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
             background-color: #FFA500; /* لون الباصات البرتقالي */
-        }
-
-        /* أنماط جديدة لأيقونة تحديد الوجهة وجدول الوجهات */
-        #destination-table-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1002;
-            padding: 15px;
-            max-height: 80%;
-            overflow-y: auto;
-            display: none; /* مخفي افتراضياً */
-            width: 250px; /* عرض ثابت للجدول */
-            direction: rtl; /* لضمان عرض المحتوى من اليمين لليسار */
-        }
-        #destination-table-container h3 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        #destination-table-container table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #destination-table-container th,
-        #destination-table-container td {
-            border: 1px solid #eee;
-            padding: 8px;
-            text-align: right;
-        }
-        #destination-table-container th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        .destination-item {
-            cursor: pointer;
-            background-color: #e9f5ff;
-            transition: background-color 0.2s ease;
-        }
-        .destination-item:hover {
-            background-color: #cce7ff;
         }
 
         /* لوحة معلومات المسار */
@@ -265,9 +187,9 @@
 
     <div id="control-box">
         <div class="leaflet-control-title">تطبيق الهاتف النقال في تحليل المسارات البديلة</div>
-        <div id="manual-destination-input-container" style="width: 90%; flex-direction: column; align-items: center; margin-top: 10px;">
-            <input type="text" id="start-input" placeholder="نقطة البداية (اختياري)" disabled style="margin-bottom: 5px;" />
-            <input type="text" id="destination-input" placeholder="أدخل الوجهة هنا (مثال: رام الله)" disabled/>
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <input type="text" id="start-input" placeholder="نقطة البداية" readonly />
+            <input type="text" id="destination-input" placeholder="الوجهة" readonly/>
             <button id="get-directions-btn" class="action-button">الحصول على الاتجاهات</button>
         </div>
     </div>
@@ -284,19 +206,6 @@
 
     <div id="set-destination-icon" class="location-icon" title="تعيين الوجهة بالنقر على الخريطة">
         B
-    </div>
-
-    <div id="destination-table-container">
-        <h3>اختر وجهة من خطوط الحافلات</h3>
-        <table id="destination-table">
-            <thead>
-                <tr>
-                    <th>الوجهة</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
     </div>
 
     <div id="route-info-panel">
@@ -344,11 +253,10 @@
 
         var userLocationMarker = null;
         var startMarker = null; // لتخزين علامة نقطة البداية المحددة بالنقر
-        var destinationMarker = null; // لتخزين علامة نقطة النهاية المحددة بالنقر أو البحث
+        var destinationMarker = null; // لتخزين علامة نقطة النهاية المحددة بالنقر
         var startCoordinates = null; // إحداثيات نقطة البداية (سواء من GPS أو النقر)
         var destinationCoordinates = null; // إحداثيات الوجهة النهائية
         var routingControl = null;
-        var allBusDestinations = new Set();
         var communityGeoJsonLayer = null;
 
         var currentMode = null; // 'setStart' أو 'setDestination' لتحديد وضع النقر على الخريطة
@@ -434,10 +342,6 @@
                     exBusDictByID[id] = [];
                 }
                 exBusDictByID[id].push(item);
-
-                if (item["نهاية الخط - مدينة"] && item["نهاية الخط - مدينة"].trim() !== "") {
-                    allBusDestinations.add(item["نهاية الخط - مدينة"].trim());
-                }
             });
 
             L.geoJSON(busData, {
@@ -547,14 +451,12 @@
             var newStatus = selectElement.value;
             checkpointStatus[name] = newStatus;
 
-            // تحديث الأيقونة مباشرة بعد تغيير الحالة
             map.eachLayer(function(layer) {
                 if (layer instanceof L.Marker && layer.getPopup()) {
                     let popupContent = layer.getPopup().getContent();
                     if (popupContent.includes(`<b>${name}</b>`)) {
                         var icon = newStatus.includes("مغلق") ? closedCheckpointIcon : openCheckpointIcon;
                         layer.setIcon(icon);
-                        // يجب إعادة بناء الـ popup لتحديث محتواه
                         layer.setPopupContent(`<b>${name}</b><br/>
                             <b>الحالة:</b> ${newStatus}<br/>
                             <label>اختر الحالة:</label>
@@ -610,41 +512,24 @@
                 .openOn(map);
         }
 
-        function populateDestinationTable() {
-            const tbody = document.querySelector('#destination-table tbody');
-            tbody.innerHTML = '';
+        // إخفاء/إظهار لوحة التحكم العلوية
+        document.getElementById('toggle-control-box').addEventListener('click', function() {
+            const controlBox = document.getElementById('control-box');
+            const toggleButton = this;
+            if (controlBox.classList.contains('hidden')) {
+                controlBox.classList.remove('hidden');
+                toggleButton.textContent = '^'; // سهم للأعلى
+                // Adjust button position to be outside the hidden box if it was inside
+                toggleButton.style.top = '10px';
+            } else {
+                controlBox.classList.add('hidden');
+                toggleButton.textContent = 'v'; // سهم للأسفل
+                // Adjust button position to stay visible after hiding the box
+                toggleButton.style.top = '10px'; // Keep it at 10px, it will float over the hidden box
+            }
+        });
 
-            const sortedDestinations = Array.from(allBusDestinations).sort();
-
-            sortedDestinations.forEach(destination => {
-                const row = tbody.insertRow();
-                row.className = 'destination-item';
-                row.onclick = () => selectDestinationFromTable(destination);
-                const cell = row.insertCell();
-                cell.textContent = destination;
-            });
-        }
-
-        function selectDestinationFromTable(destinationName) {
-            document.getElementById('destination-table-container').style.display = 'none';
-            document.getElementById('destination-input').value = destinationName;
-            // حاول البحث عن إحداثيات الوجهة المختارة من الجدول
-            var geocoder = L.Control.Geocoder.nominatim();
-            geocoder.geocode(destinationName, function(results) {
-                if (results && results.length > 0) {
-                    destinationCoordinates = results[0].center;
-                    if (destinationMarker) {
-                        map.removeLayer(destinationMarker);
-                    }
-                    destinationMarker = L.marker(destinationCoordinates).addTo(map).bindPopup(`الوجهة: ${destinationName}`).openPopup();
-                    map.setView(destinationCoordinates, 13);
-                    initiateRouting();
-                } else {
-                    alert('لم يتم العثور على إحداثيات للوجهة المختارة من الجدول.');
-                }
-            });
-        }
-
+        // زر تحديد موقعي الحالي
         document.getElementById('location-btn').addEventListener('click', function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -653,12 +538,14 @@
                     if (userLocationMarker) {
                         userLocationMarker.setLatLng(startCoordinates);
                     } else {
-                        userLocationMarker = L.marker(startCoordinates).addTo(map).bindPopup("موقعك الحالي").openPopup();
+                        userLocationMarker = L.marker(startCoordinates, {
+                            icon: L.divIcon({className: 'location-icon', html: '📍', iconSize: [40, 40], iconAnchor: [20, 40]})
+                        }).addTo(map).bindPopup("موقعك الحالي").openPopup();
                     }
                     // تحديث حقل البداية
                     document.getElementById('start-input').value = 'موقعك الحالي (GPS)';
                     map.setView(startCoordinates, 13);
-                    initiateRouting(); // حاول رسم المسار إذا كانت الوجهة محددة
+                    initiateRouting(); // حاول رسم المسار
                 }, function(error) {
                     alert("تعذر الحصول على موقعك. يرجى التأكد من تمكين خدمات الموقع.");
                     console.error("Error getting location:", error);
@@ -668,98 +555,71 @@
             }
         });
 
-        // زر تعيين نقطة البداية بالنقر
+        // زر تعيين نقطة البداية بالنقر (A)
         document.getElementById('set-start-icon').addEventListener('click', function() {
             currentMode = 'setStart';
-            alert('الرجاء النقر على الخريطة لتعيين نقطة البداية.');
+            alert('الرجاء النقر على الخريطة لتعيين نقطة البداية (A).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
+             // إزالة علامة المستخدم الحالية إذا كانت موجودة
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
         });
 
-        // زر تعيين الوجهة بالنقر
+        // زر تعيين الوجهة بالنقر (B)
         document.getElementById('set-destination-icon').addEventListener('click', function() {
             currentMode = 'setDestination';
-            alert('الرجاء النقر على الخريطة لتعيين الوجهة.');
+            alert('الرجاء النقر على الخريطة لتعيين الوجهة (B).');
             map.getContainer().style.cursor = 'crosshair'; // تغيير المؤشر
         });
 
-        // الاستماع للنقرات على الخريطة
+        // الاستماع للنقرات على الخريطة لتحديد النقاط
         map.on('click', function(e) {
             if (currentMode === 'setStart') {
                 startCoordinates = [e.latlng.lat, e.latlng.lng];
                 if (startMarker) {
                     map.removeLayer(startMarker);
                 }
-                startMarker = L.marker(startCoordinates).addTo(map).bindPopup("نقطة البداية").openPopup();
-                document.getElementById('start-input').value = `نقطة مختارة (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+                startMarker = L.marker(startCoordinates, {
+                    icon: L.divIcon({className: 'location-icon', html: 'A', iconSize: [40, 40], iconAnchor: [20, 40]})
+                }).addTo(map).bindPopup("نقطة البداية").openPopup();
+                document.getElementById('start-input').value = `نقطة A (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
                 currentMode = null; // إيقاف وضع التحديد
                 map.getContainer().style.cursor = ''; // إعادة المؤشر الافتراضي
-                initiateRouting();
+                initiateRouting(); // حاول رسم المسار
             } else if (currentMode === 'setDestination') {
                 destinationCoordinates = [e.latlng.lat, e.latlng.lng];
                 if (destinationMarker) {
                     map.removeLayer(destinationMarker);
                 }
-                destinationMarker = L.marker(destinationCoordinates).addTo(map).bindPopup("الوجهة").openPopup();
-                document.getElementById('destination-input').value = `وجهة مختارة (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+                destinationMarker = L.marker(destinationCoordinates, {
+                    icon: L.divIcon({className: 'location-icon', html: 'B', iconSize: [40, 40], iconAnchor: [20, 40]})
+                }).addTo(map).bindPopup("الوجهة").openPopup();
+                document.getElementById('destination-input').value = `نقطة B (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
                 currentMode = null; // إيقاف وضع التحديد
                 map.getContainer().style.cursor = ''; // إعادة المؤشر الافتراضي
-                initiateRouting();
+                initiateRouting(); // حاول رسم المسار
             }
         });
 
+        // عند الضغط على زر "الحصول على الاتجاهات"
         document.getElementById('get-directions-btn').addEventListener('click', function() {
-            // إذا كان هناك نص في حقل الوجهة اليدوي، حاول استخدام Geocoder
-            const manualDestinationText = document.getElementById('destination-input').value.trim();
-
-            if (manualDestinationText && !destinationCoordinates) {
-                var geocoder = L.Control.Geocoder.nominatim();
-                geocoder.geocode(manualDestinationText, function(results) {
-                    if (results && results.length > 0) {
-                        destinationCoordinates = results[0].center;
-                        if (destinationMarker) {
-                            map.removeLayer(destinationMarker);
-                        }
-                        destinationMarker = L.marker(destinationCoordinates).addTo(map).bindPopup(`نقطة النهاية: ${results[0].name}`).openPopup();
-                        map.setView(destinationCoordinates, 14);
-                        initiateRouting();
-                    } else {
-                        alert('لم يتم العثور على الوجهة المحددة: ' + manualDestinationText + '. الرجاء التحقق من الإدخال.');
-                        document.getElementById('route-info-panel').style.display = 'none'; // إخفاء لوحة المعلومات
-                    }
-                });
-            } else {
-                initiateRouting();
-            }
+            initiateRouting();
         });
+
 
         function initiateRouting() {
-            if (!startCoordinates) {
-                alert("الرجاء تحديد نقطة البداية أولاً (باستخدام زر الموقع، أو زر 'A' والنقر على الخريطة).");
-                document.getElementById('route-info-panel').style.display = 'none'; // إخفاء لوحة المعلومات
-                return;
-            }
-            if (!destinationCoordinates) {
-                alert("الرجاء تحديد الوجهة أولاً (باستخدام زر 'B' والنقر على الخريطة، أو اختيارها من قائمة الوجهات).");
-                document.getElementById('route-info-panel').style.display = 'none'; // إخفاء لوحة المعلومات
-                return;
-            }
-
+            // إزالة التحكم في التوجيه الحالي إذا كان موجوداً
             if (routingControl) {
                 map.removeControl(routingControl);
                 routingControl = null;
             }
 
-            // إعادة تعيين جميع ميزات community.geojson إلى النمط الشفاف الافتراضي
-            if (communityGeoJsonLayer) {
-                communityGeoJsonLayer.eachLayer(function(layer) {
-                    layer.setStyle({
-                        color: '#8B008B',
-                        weight: 0.5,
-                        opacity: 0.05,
-                        fillOpacity: 0,
-                        fillColor: 'transparent'
-                    });
-                });
+            // إخفاء لوحة معلومات المسار في حال عدم وجود نقاط كافية
+            if (!startCoordinates || !destinationCoordinates) {
+                document.getElementById('route-info-panel').style.display = 'none';
+                return; // لا ترسم مسار إذا لم يتم تحديد النقطتين
             }
 
             // الآن، قم بإنشاء التحكم في التوجيه
@@ -771,15 +631,15 @@
                 router: L.Routing.osrmv1({
                     serviceUrl: 'https://router.project-osrm.org/route/v1'
                 }),
-                routeWhileDragging: true,
+                routeWhileDragging: true, // يمكن سحب نقاط المسار لتغيير الطريق
                 language: 'ar',
-                showAlternatives: false,
+                showAlternatives: false, // لا تعرض مسارات بديلة
                 lineOptions: {
-                    styles: [{color: 'red', weight: 6, opacity: 0.8}]
+                    styles: [{color: 'red', weight: 6, opacity: 0.8}] // تعيين لون المسار إلى الأحمر
                 },
-                collapsible: true,
+                collapsible: true, // يمكن طي لوحة التحكم الخاصة بالمسار
+                // لا تنشئ علامات تلقائية بواسطة L.Routing.control
                 createMarker: function(i, waypoint, n) {
-                    // لا تنشئ علامات تلقائية بواسطة L.Routing.control
                     return null;
                 }
             }).addTo(map);
@@ -792,6 +652,7 @@
                 document.getElementById('route-distance').textContent = (summary.totalDistance / 1000).toFixed(2) + ' كم';
                 document.getElementById('route-duration').textContent = Math.round(summary.totalTime / 60) + ' دقيقة';
                 document.getElementById('route-info-panel').style.display = 'block'; // إظهار اللوحة
+                map.fitBounds(routingControl.get  .routes[0].bounds); // تكبير/تصغير الخريطة لتناسب المسار
             });
 
             routingControl.on('routingerror', function(e) {
@@ -800,39 +661,6 @@
                 document.getElementById('route-info-panel').style.display = 'none'; // إخفاء لوحة المعلومات عند الخطأ
             });
         }
-
-        // إخفاء/إظهار لوحة التحكم العلوية
-        document.getElementById('toggle-control-box').addEventListener('click', function() {
-            const controlBox = document.getElementById('control-box');
-            const toggleButton = this;
-            if (controlBox.classList.contains('hidden')) {
-                controlBox.classList.remove('hidden');
-                toggleButton.textContent = '^'; // سهم للأعلى
-                toggleButton.style.top = '10px'; // أعد الزر لمكانه
-            } else {
-                controlBox.classList.add('hidden');
-                toggleButton.textContent = 'v'; // سهم للأسفل
-                toggleButton.style.top = '10px'; // أعد الزر لمكانه
-            }
-        });
-
-        // زر لفتح قائمة الوجهات من خطوط الحافلات (للتوافق مع الواجهة الجديدة)
-        document.getElementById('set-destination-icon').addEventListener('click', function() {
-            const destinationTableContainer = document.getElementById('destination-table-container');
-            if (destinationTableContainer.style.display === 'none' || destinationTableContainer.style.display === '') {
-                populateDestinationTable();
-                destinationTableContainer.style.display = 'block';
-            } else {
-                destinationTableContainer.style.display = 'none';
-            }
-            currentMode = null; // إيقاف أي وضع تحديد على الخريطة
-            map.getContainer().style.cursor = ''; // إعادة المؤشر الافتراضي
-        });
-
-        // لجعل حقلي الإدخال read-only ما لم يتم تحديد موقع بالنقر
-        document.getElementById('start-input').readOnly = true;
-        document.getElementById('destination-input').readOnly = true;
-
     </script>
 </body>
 </html>
