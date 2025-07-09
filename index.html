@@ -1,152 +1,152 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>تطبيق الهاتف النقال في تحليل المسارات البديلة</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <style>
-        html, body, #map {
-            height: 100%;
-            margin: 0; padding: 0;
-            overflow: hidden;
-        }
-        #control-box {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: calc(100% - 40px);
-            max-width: 400px;
-        }
-        #toggle-control-box {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        #toggle-control-box:hover {
-            background-color: #135da8;
-        }
-        .leaflet-control-title {
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            width: 100%;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        /* حقول الإدخال */
-        #start-input, #destination-input, #get-directions-btn {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            display: none;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            margin-top: 8px;
-            transition: background-color 0.2s ease;
-        }
-        button:hover {
-            background: #135da8;
-        }
-        .location-icon, #set-start-icon, #set-destination-icon {
-            background-color: #ff9800;
-            border-radius: 50%;
-            padding: 10px;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-            position: absolute;
-            z-index: 1001;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .location-icon:hover, #set-start-icon:hover, #set-destination-icon:hover {
-            background-color: #ef6c00;
-        }
-        .location-icon {
-            top: 10px;
-            left: 10px;
-        }
-        #set-start-icon {
-            top: 65px;
-            left: 10px;
-            background-color: #2196F3;
-        }
-        #set-start-icon:hover {
-            background-color: #1976d2;
-        }
-        #set-destination-icon {
-            top: 120px;
-            left: 10px;
-            background-color: #F44336;
-        }
-        #set-destination-icon:hover {
-            background-color: #d32f2f;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تطبيق الهاتف النقال في تحليل المسارات البديلة</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0; padding: 0;
+      overflow: hidden;
+    }
+    #control-box {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: calc(100% - 40px);
+      max-width: 400px;
+    }
+    #toggle-control-box {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    #toggle-control-box:hover {
+      background-color: #135da8;
+    }
+    .leaflet-control-title {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      width: 100%;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    /* حقول الإدخال */
+    #start-input, #destination-input, #get-directions-btn {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      display: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 8px;
+      transition: background-color 0.2s ease;
+    }
+    button:hover {
+      background: #135da8;
+    }
+    .location-icon, #set-start-icon, #set-destination-icon {
+      background-color: #ff9800;
+      border-radius: 50%;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      position: absolute;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .location-icon:hover, #set-start-icon:hover, #set-destination-icon:hover {
+      background-color: #ef6c00;
+    }
+    .location-icon {
+      top: 10px;
+      left: 10px;
+    }
+    #set-start-icon {
+      top: 65px;
+      left: 10px;
+      background-color: #2196F3;
+    }
+    #set-start-icon:hover {
+      background-color: #1976d2;
+    }
+    #set-destination-icon {
+      top: 120px;
+      left: 10px;
+      background-color: #F44336;
+    }
+    #set-destination-icon:hover {
+      background-color: #d32f2f;
+    }
 
-        #route-info-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: none;
-            text-align: center;
-            min-width: 250px;
-            font-size: 16px;
-            color: #333;
-        }
-        #route-info-panel strong {
-            color: #1976d2;
-            font-size: 18px;
-        }
-    </style>
+    #route-info-panel {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: none;
+      text-align: center;
+      min-width: 250px;
+      font-size: 16px;
+      color: #333;
+    }
+    #route-info-panel strong {
+      color: #1976d2;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
   <div id="map"></div>
@@ -170,8 +170,6 @@
     المدة: <span id="route-duration"></span>
   </div>
 
-  <div id="destination-list"></div>
-
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
@@ -189,35 +187,6 @@
     var destinationCoordinates = null;
     var routingControl = null;
     var currentMode = null; // 'setStart' or 'setDestination'
-
-    // تحميل بيانات community.geojson
-    fetch('https://raw.githubusercontent.com/WestBank-Traffic/WestBank-Traffic/main/community.geojson')
-      .then(response => response.json())
-      .then(data => {
-        const destinationList = document.getElementById('destination-list');
-        const destinations = data.features;
-
-        let html = '<h3>اختر الوجهة:</h3><table style="width:100%; text-align:right; border-collapse:collapse;">';
-        html += '<tr><th>الوجهة</th><th>اختيار</th></tr>';
-
-        destinations.forEach(feature => {
-          const communityName = feature.properties.CommunityN;
-          html += `<tr><td>${communityName}</td><td><button onclick="setDestination('${communityName}')">اختيار</button></td></tr>`;
-        });
-
-        html += '</table>';
-        destinationList.innerHTML = html;
-      });
-
-    function setDestination(communityName) {
-      alert('تم اختيار الوجهة: ' + communityName);
-      // يتم تحديد إحداثيات الوجهة هنا حسب بيانات الملف
-      // مثال: يمكنك تحديد الإحداثيات بناءً على مكان الوجهة المحددة
-
-      // إضافة مثال لوجود إحداثيات الوجهة
-      destinationCoordinates = [31.9, 35.2]; // ضع الإحداثيات الحقيقية هنا
-      initiateRouting();
-    }
 
     // تعيين نقطة البداية بالنقر
     document.getElementById('set-start-icon').addEventListener('click', function() {
